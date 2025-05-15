@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++ -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/auction.dir/test.cpp.o -o auction  -Wl,-rpath,/usr/local/lib /usr/local/lib/libcpr.1.11.1.dylib /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk/usr/lib/libcurl.tbd

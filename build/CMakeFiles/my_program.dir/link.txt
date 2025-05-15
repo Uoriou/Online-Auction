@@ -1,0 +1,1 @@
+/Library/Developer/CommandLineTools/usr/bin/c++  -isysroot /Library/Developer/CommandLineTools/SDKs/MacOSX15.2.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names CMakeFiles/my_program.dir/test.cpp.o -o my_program  /Library/Frameworks/Python.framework/Versions/3.10/lib/libpython3.10.dylib
