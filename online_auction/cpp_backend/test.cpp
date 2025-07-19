@@ -15,7 +15,6 @@ C++ should be used for handling concurrent requests and websocket connections
 Real time bedding 
 */
 
-
 static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
     int i;
     for(i = 0; i<argc; i++) {
