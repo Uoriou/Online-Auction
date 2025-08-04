@@ -32,8 +32,8 @@ RUN git clone --depth=1 https://github.com/CrowCpp/Crow.git || \
 COPY . /app
 
 #RUN g++ -o backend backend.cpp -std=c++17 -pthread -lcpr -lcurl -lboost_system -lssl -lcrypto -I/app/Crow/include -I/usr/include -DASIO_STANDALONE
-RUN g++ -o backend backend.cpp -std=c++17 -pthread -lcpr -lcurl -lboost_system -lssl -lcrypto -lpqxx -lpq -I/app/Crow/include -I/usr/include -DASIO_STANDALONE
+RUN g++ -o test test.cpp -std=c++17 -pthread -lcpr -lcurl -lboost_system -lssl -lcrypto -lpqxx -lpq -I/app/Crow/include -I/usr/include -DASIO_STANDALONE
 
 RUN ls -l backend && file backend
-EXPOSE 9999
-CMD ["./backend"]
+EXPOSE 3333
+CMD ["./test"]

@@ -13,6 +13,9 @@ using json = nlohmann::json;
 /*
 C++ should be used for handling concurrent requests and websocket connections
 Real time bedding 
+!The following code is using mySQL as base and need to be moved to postgreSQL !
+!and the user management should be done using python django and real time bedding is done using C++!
+? Can't I just use Java  ? 
 */
 
 static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
@@ -23,7 +26,7 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName) {
     printf("\n");
     return 0;
 }
-
+// TODO Change the db logic to use PostgreSQL instead of SQLites
 void updateBid(sqlite3*& db, char*& zErrMsg, int& rc,int &itemId,float &newBid){
     
     rc = sqlite3_open("db.sqlite3", &db);
@@ -53,9 +56,9 @@ int main(){
 
     crow::SimpleApp app;//Used to initialise CROW server  
     std::mutex mtx;;
+    std::lock_guard<std::mutex> _(mtx);
     unordered_set<crow::websocket::connection*> users;
     unordered_set<int>set;
-
     sqlite3 *db;
     char *zErrMsg = 0;
     int rc;
@@ -82,11 +85,13 @@ int main(){
         set.insert(1); // testing how i can use this
        
     })
-    .onclose([&](crow::websocket::connection& conn, const string& reason){
-        std::lock_guard<std::mutex> _(mtx);
-        CROW_LOG_INFO << "websocket connection closed: " << reason;
-        users.erase(&conn);
-    })
+    .onclose(std::function<void(crow::websocket::connection&, const std::string&)>(
+    [&users,&mtx](crow::websocket::connection& conn, const std::string& reason) {
+            //std::lock_guard<std::mutex> _(mtx);
+            CROW_LOG_INFO << "websocket connection closed: " << reason;
+            users.erase(&conn);
+        }
+    ))
     .onmessage([&](crow::websocket::connection& conn, const string& data, bool is_binary){
         std::lock_guard<std::mutex> _(mtx);
         nlohmann::json jsonData;
@@ -95,6 +100,7 @@ int main(){
         cout<<data;// This is a json  request from client and store this in database, 'db.sqlite3'
         int itemId = jsonData["item_id"].get<int>();
         float newBidPrice = jsonData["new_bid_price"].get<float>(); 
+        //Update the bid received from the frontend
         updateBid(db, zErrMsg, rc, itemId, newBidPrice); 
         crow::json::wvalue jsonResponse;
         jsonResponse["message"] = "C++ Server received your request";

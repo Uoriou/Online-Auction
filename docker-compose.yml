@@ -1,0 +1,37 @@
+version: '3.9'
+services:
+
+  db:
+    image: postgres
+    container_name: postgres-db-auction
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: auction
+      POSTGRES_USER: mario
+      POSTGRES_PASSWORD: mariopassword
+
+  frontend:
+      build: ./online_auction_frontend
+      ports:
+        - "3000:3000"
+      depends_on:
+        - python-backend
+      volumes:
+        - ./online_auction_frontend:/app 
+      
+  java-backend:
+    build: ./online_auction/java_backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - frontend
+
+  python-backend:
+    build: ./online_auction/python_backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./online_auction/python_backend:/app
+    depends_on:
+      - db

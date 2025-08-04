@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import logo from './logo.svg';
 import { Link, Navigate } from 'react-router-dom';
 
 interface Item {
@@ -41,9 +40,7 @@ const Home = () => {
     },[]);
 
     return(
-
         <>
-
             <h1>Items</h1>
             <div style = {{
                 textAlign: 'center',

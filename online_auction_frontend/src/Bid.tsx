@@ -4,6 +4,7 @@ import { useLocation,useParams } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
 import Alert from '@mui/material/Alert';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
+import * as StompJs from '@stomp/stompjs';
 
 //A user can only bet if they are registered and authenticated
 //The above logic is handled in Login.tsx
@@ -79,17 +80,35 @@ const Bid = () => {
 
         return accessToken;
     }
-
-    const socket = new WebSocket("ws://localhost:3333/websocket");
+    // TODO Match the websocket logic with Java 
+    /*const socket = new WebSocket("ws://localhost:3333/websocket");
     socket.onopen = () => {
-
         console.log("WebSocket connection to C++ opened");
-
     };
     socket.onmessage = (event) => {
         const data = JSON.parse(event.data);
         console.log("Message from server:", data.message); 
+    };*/
+    // TODO Java websocket 
+    const stompClient = new StompJs.Client({
+        brokerURL: 'ws://localhost:8080/websocket'
+    });
+
+    stompClient.onConnect = (frame) => {
        
+        console.log('Connected: ' + frame);
+        stompClient.subscribe('/topic/greetings', (greeting) => {
+
+        });
+    };
+
+    stompClient.onWebSocketError = (error) => {
+        console.error('Error with websocket', error);
+    };
+
+    stompClient.onStompError = (frame) => {
+        console.error('Broker reported error: ' + frame.headers['message']);
+        console.error('Additional details: ' + frame.body);
     };
             
     async function handleBidSubmit(e:React.SyntheticEvent){
@@ -110,12 +129,15 @@ const Bid = () => {
                     "item_id":item.id,
                     "new_bid_price":new_bid
                 }
-                socket.send(JSON.stringify(bid)); 
+                //socket.send(JSON.stringify(bid)); 
                 setOpen(true)
             }catch{
                 alert("Problem with the websocket")
-
-            // C++ should be used in the following and change the link to a C++ end point 
+            // TODO Replace C++ with Java for both web sockets, and APIs (if needed)
+            // ? Is the following a python segment ? I though i was supposed to send to Java backend to
+            // ? to also update whats displayed on the frontend 
+            // TODO, well here is an idea -> what about displaying every bid price, while keeping the 
+            // TODO original price there on the screen ?
             }
             /*try{
 
@@ -144,7 +166,6 @@ const Bid = () => {
 
     useEffect(() => {
         fetchItemToBid();
-        //refreshAccessToken();
         getAccessToken();
         
     },[]);

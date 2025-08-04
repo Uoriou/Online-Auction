@@ -1,0 +1,20 @@
+# Ignore node_modules
+node_modules
+
+# Ignore Git metadata
+.git
+
+# Ignore logs
+*.log
+
+# Ignore environment files
+.env
+.env.local
+
+# Ignore build output
+dist
+build
+
+# Ignore test and editor configs
+*.test.*
+.vscode

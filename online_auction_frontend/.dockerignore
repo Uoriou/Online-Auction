@@ -1,0 +1,23 @@
+# Ignore dependencies (will be installed inside container)
+node_modules
+
+# Build output
+build
+dist
+
+# Logs
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# OS and editor settings
+.DS_Store
+.env
+*.swp
+*.swo
+.idea
+.vscode
+
+# Git
+.git
+.gitignore
