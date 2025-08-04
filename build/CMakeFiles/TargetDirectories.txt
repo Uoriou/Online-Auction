@@ -1,3 +1,0 @@
-/Users/m9/Documents/Leipzig/PC/Online-Auction/build/CMakeFiles/auction.dir
-/Users/m9/Documents/Leipzig/PC/Online-Auction/build/CMakeFiles/edit_cache.dir
-/Users/m9/Documents/Leipzig/PC/Online-Auction/build/CMakeFiles/rebuild_cache.dir
