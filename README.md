@@ -20,3 +20,29 @@ This project is deployed on Docker, therefore
 
 - Please install Docker desktop: https://www.docker.com/products/docker-desktop/
 - Make sure to clone this Online-Auction repository
+
+## Run the docker image
+
+Once Docker is installed, it is possible to use the .yml file of this project to build the docker image to run the project using this command: 
+```bash 
+    docker compose up -d --build 
+```
+
+Make sure to run the project container. 
+
+Once the container is up and running, go back to where python-backend is located and create a superuser:
+
+```bash
+   docker-compose web exec python3 manage.py createsuperuser
+```
+Then apply the Django databses changes:
+
+```bash
+  docker compose exec python-backend python3 manage.py migrate
+```
+The command will ask for your username and password, which allow you to access Django admin panel.
+
+Access the application at: 
+``` bash
+    http://localhost:3000/login 
+```
