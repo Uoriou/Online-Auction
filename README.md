@@ -14,6 +14,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 - Java Spring Boot 
 - PostgreSQL server
 - React Typescript
+- Docker
 
 ## Installation Guidline
 This project is deployed on Docker, therefore 
