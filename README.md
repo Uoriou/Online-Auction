@@ -8,7 +8,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 - Operating System: Windows, macOS, or Linux
 - Docker / Docker desktop 
 
-## Libraries Used:
+## Libraries / Technologies Used:
 
 - Python Django REST framework 
 - Java Spring Boot 
