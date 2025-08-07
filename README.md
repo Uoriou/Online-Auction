@@ -30,8 +30,8 @@ Once Docker is installed, it is possible to use the .yml file of this project to
 
 Make sure to run the project container. 
 
-Once the container is up and running, go back to where python-backend is located and create a superuser:
-
+Once the container is up and running, go back to where python-backend is located and create a superuser
+to access the default Django admin panel 
 ```bash
    docker-compose web exec python3 manage.py createsuperuser
 ```
@@ -40,7 +40,7 @@ Then apply the Django databses changes:
 ```bash
   docker compose exec python-backend python3 manage.py migrate
 ```
-The command will ask for your username and password, which allow you to access Django admin panel.
+
 
 Access the application at: 
 ``` bash
