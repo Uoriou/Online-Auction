@@ -16,7 +16,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 - React Typescript
 - Docker
 
-  [![My Skills](https://skillicons.dev/icons?i=react,vue,flutter&perline=3)](https://skillicons.dev)
+  [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
 ## Installation Guidline
 This project is deployed on Docker, therefore 
