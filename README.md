@@ -38,14 +38,18 @@ to access the default Django admin panel
 ```bash
    docker-compose web exec python3 manage.py createsuperuser
 ```
-Then apply the Django databses changes:
+Then apply the Django databse migrations:
 
 ```bash
   docker compose exec python-backend python3 manage.py migrate
 ```
 
-
 Access the application at: 
 ``` bash
     http://localhost:3000/login 
+```
+
+To stop the application run:
+```bash
+  docker compose down
 ```
