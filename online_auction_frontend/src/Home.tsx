@@ -10,6 +10,7 @@ interface Item {
     image: string;
     starting_price: number;
     current_price: number; 
+    price_history:number;
 };
 
 

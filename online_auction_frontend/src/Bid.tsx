@@ -4,7 +4,25 @@ import { useLocation,useParams } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
 import Alert from '@mui/material/Alert';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
-import * as StompJs from '@stomp/stompjs';
+import SockJS from 'sockjs-client';
+import { Client } from '@stomp/stompjs';
+import Button from '@mui/material/Button';
+import Stack from '@mui/material/Stack';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Grid from '@mui/material/Grid';
+import { styled } from '@mui/material/styles';
+
+const Item = styled(Paper)(({ theme }) => ({
+    backgroundColor: '#fff',
+    ...theme.typography.body2,
+    padding: theme.spacing(1),
+    textAlign: 'center',
+    color: (theme).palette.text.secondary,
+    ...theme.applyStyles('dark', {
+        backgroundColor: '#1A2027',
+    }),
+}));
 
 //A user can only bet if they are registered and authenticated
 //The above logic is handled in Login.tsx
@@ -37,12 +55,7 @@ const Bid = () => {
     const { id } = useParams<{ id: string }>();
     const [item, setItem] = useState<Item | null>();
     const [bidHistory,setBidHistory] = useState<string[]>([]);//Change the data type
-    const [file,setFile] = useState<File | undefined>();
-    const [form,setForm] = useState<Item>(defaultItem);
-    const [name,setName] = useState("");
-    const [description,setDescription] = useState("");
-    const [startingPrice,setStartingPrice] = useState(0);
-    const [currentPrice,setCurrentPrice] = useState(0);
+    let bidsArr: string[] = []; // creating an dynamic array for stacks
     const [open,setOpen] = React.useState(false);
 
     
@@ -80,37 +93,30 @@ const Bid = () => {
 
         return accessToken;
     }
-    // TODO Match the websocket logic with Java 
-    /*const socket = new WebSocket("ws://localhost:3333/websocket");
-    socket.onopen = () => {
-        console.log("WebSocket connection to C++ opened");
-    };
-    socket.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Message from server:", data.message); 
-    };*/
-    // TODO Java websocket 
-    const stompClient = new StompJs.Client({
-        brokerURL: 'ws://localhost:8080/websocket'
-    });
 
-    stompClient.onConnect = (frame) => {
-       
-        console.log('Connected: ' + frame);
-        stompClient.subscribe('/topic/greetings', (greeting) => {
-
+     // TODO Java websocket 
+        //const socket = new SockJS('http://localhost:8080/ws');
+        const stompClient = new Client({
+            brokerURL: 'ws://localhost:8080/websocket',
+            webSocketFactory: () => new SockJS('http://localhost:8080/websocket'), // Optional: for SockJS fallback
+            onConnect: () => {
+                console.log('Connected to WebSocket');
+                stompClient.subscribe('/topic/greetings', message => {
+                console.log('Received message:', JSON.parse(message.body));
+                // Update React state with the received message
+                });
+            },
+            onDisconnect: () => {
+                console.log('Disconnected from WebSocket');
+            },
+            onStompError: frame => {
+                console.error('Broker reported error:', frame.headers['message']);
+                console.error('Additional details:', frame.body);
+            },
         });
-    };
 
-    stompClient.onWebSocketError = (error) => {
-        console.error('Error with websocket', error);
-    };
-
-    stompClient.onStompError = (frame) => {
-        console.error('Broker reported error: ' + frame.headers['message']);
-        console.error('Additional details: ' + frame.body);
-    };
-            
+        stompClient.activate(); 
+    
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -130,12 +136,22 @@ const Bid = () => {
                     "new_bid_price":new_bid
                 }
                 //socket.send(JSON.stringify(bid)); 
+                // To send a message:
+                stompClient.publish({
+                    destination: '/app/test',
+                    body: JSON.stringify(bid),
+                });
+                console.log("OK");
+                    // Then, dynamically adjust the number of stacks
+                    //  as the prices from the web socket get placed
+                if(new_bid){
+                    bidsArr.push(new_bid.toString());// change it to use state 
+                }
                 setOpen(true)
-            }catch{
-                alert("Problem with the websocket")
-            // TODO Replace C++ with Java for both web sockets, and APIs (if needed)
-            // ? Is the following a python segment ? I though i was supposed to send to Java backend to
-            // ? to also update whats displayed on the frontend 
+            }catch(e){
+                alert("Problem with the websocket sending")
+                console.error(e)
+            // The following is a python segment to simply update the price of an item
             // TODO, well here is an idea -> what about displaying every bid price, while keeping the 
             // TODO original price there on the screen ?
             }
@@ -163,63 +179,76 @@ const Bid = () => {
         reason?: SnackbarCloseReason,) =>{
         setOpen(false);
     }
+    // Item stacks expand dynamically as bids get placed
+    // Create an array to simulate the expanding Item stacks 
+    //But first show placed bids price if any, then real-time changes can take place
+    const alreadyPlaced = () => {// show the already placed bids, retrieve them from Django
+
+    }
 
     useEffect(() => {
         fetchItemToBid();
         getAccessToken();
-        
+       
+
     },[]);
 
     return (
         <>
-            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/css/bootstrap.min.css"/>
-            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-            <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.4.1/js/bootstrap.min.js"></script>
-
-            <h1>Item: {id} </h1> 
-            <div className="container text-center">
-
-                    <div className="row">
-                        <div className="col-lg-6">
-
-                            {item ? (
-                                <div key={item.id}>
-                                    <p>Name: {item.name}</p>
-                                    <img 
-                                        src={`http://127.0.0.1:8000/${item.image}`} 
-                                        alt={item.name} width={300} 
-                                        className="rounded mx-auto d-block" 
-                                    />
-                                    <p>Description: {item.description}</p>
-                                    <h3>Initial Price €: {item.starting_price}</h3> 
-                                    <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
-                                </div>
-                                ): ( <p>Loading...</p>)
-                            }
-                        </div>
-                       
-                        <div className="col-lg-6">
-                            Price €: 
-                            <form onSubmit={handleBidSubmit}>
-                                <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
-                                <button 
-                                    className="btn btn-primary"> Place bid
-                                </button>
-                            </form>
+            <h1>Item: {item?.name} </h1> 
+            <Box display="flex" gap={2}>
+                {/*The leftmost grid */}
+                <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
+                    {item ? (
+                        <div key={item.id}>
+                            {/*Apparently you are mediocre if you use <img> */}
+                            <picture>
+                                <img 
+                                    src={`http://127.0.0.1:8000/${item.image}`} 
+                                    alt={item.name} width={300} 
+                                    className="rounded mx-auto d-block" 
+                                />
+                            </picture>
                             
+                            <p>Description: {item.description}</p>
+                            <h3>Initial Price €: {item.starting_price}</h3> 
+                            <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
                         </div>
-                    </div>
-                   
-                    <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
-                            <Alert
-                                onClose={handleClose}
-                                severity="success"
-                                variant="filled"
-                                sx={{ width: '100%' }}
-                            > 
-                            Bid success ! 
-                            </Alert>
-                    </Snackbar>
+                        ): 
+                        ( <p>Loading...</p>)
+                    }
+                    Price €: 
+                    <form onSubmit={handleBidSubmit}>
+                        <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
+                        <Button type="submit"> 
+                            Place bid
+                        </Button>
+                    </form>
+                </Grid>
+               
+                {/*Web socket real time bid inside a box -- >  */}
+                <Grid sx={{ backgroundColor: 'grey.200', p: 2 }}>
+                    Bid History
+                    
+                    {/*The argument is going to be a bid price */}   
+                    <Stack>
+                        <Item>
+                            {bidsArr} {/*Use useState instead */}
+                        </Item >
+                    </Stack>
+                </Grid>
+            </Box>
+            <div > 
+                <Snackbar open={open} autoHideDuration={5000} onClose={handleClose}>
+                    <Alert
+                        onClose={handleClose}
+                        severity="success"
+                        variant="filled"
+                        sx={{ width: '100%' }}
+                    > 
+                        Bid success ! 
+                    </Alert>
+                </Snackbar>
                     
             </div>
         </>
