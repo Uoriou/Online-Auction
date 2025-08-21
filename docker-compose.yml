@@ -19,6 +19,10 @@ services:
         - python-backend
       volumes:
         - ./online_auction_frontend:/app 
+      environment:
+        - ESLINT_NO_CACHE=true
+        - CHOKIDAR_USEPOLLING=true
+
       
   java-backend:
     build: ./online_auction/java_backend

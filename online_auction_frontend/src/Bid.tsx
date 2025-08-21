@@ -93,29 +93,28 @@ const Bid = () => {
 
         return accessToken;
     }
+    
+    const stompClient = new Client({
+        brokerURL: 'ws://localhost:8080/websocket',
+        webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
+        debug: (str) => {
+            console.log(str); // It is printing out some messages 
+        }, 
+        onConnect: () => {
+            stompClient.subscribe('/topic/greetings', message => {
+                console.log('Received message:', JSON.parse(message.body)); 
+            });
+        },
+        onDisconnect: () => {
+            console.log('Disconnected from WebSocket');
+        },
+        onStompError: frame => {
+            console.error('Broker reported error:', frame.headers['message']);
+            console.error('Additional details:', frame.body);
+        },
+    });
 
-     // TODO Java websocket 
-        //const socket = new SockJS('http://localhost:8080/ws');
-        const stompClient = new Client({
-            brokerURL: 'ws://localhost:8080/websocket',
-            webSocketFactory: () => new SockJS('http://localhost:8080/websocket'), // Optional: for SockJS fallback
-            onConnect: () => {
-                console.log('Connected to WebSocket');
-                stompClient.subscribe('/topic/greetings', message => {
-                console.log('Received message:', JSON.parse(message.body));
-                // Update React state with the received message
-                });
-            },
-            onDisconnect: () => {
-                console.log('Disconnected from WebSocket');
-            },
-            onStompError: frame => {
-                console.error('Broker reported error:', frame.headers['message']);
-                console.error('Additional details:', frame.body);
-            },
-        });
-
-        stompClient.activate(); 
+    stompClient.activate(); 
     
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -136,12 +135,17 @@ const Bid = () => {
                     "new_bid_price":new_bid
                 }
                 //socket.send(JSON.stringify(bid)); 
-                // To send a message:
-                stompClient.publish({
-                    destination: '/app/test',
-                    body: JSON.stringify(bid),
-                });
-                console.log("OK");
+                // Sending to Java backend websocket :
+                if(stompClient){
+                    console.log("Sending...")
+                    stompClient.publish({
+                        destination: '/app/hello', 
+                        body: JSON.stringify(bid),
+                    });
+                }else{
+                    console.error("WebSocket stomp disconnected");
+                }
+                
                     // Then, dynamically adjust the number of stacks
                     //  as the prices from the web socket get placed
                 if(new_bid){

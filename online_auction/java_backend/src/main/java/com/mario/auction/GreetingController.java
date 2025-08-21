@@ -32,7 +32,7 @@ public class GreetingController {
     private SimpMessagingTemplate messagingTemplate;
 
     @MessageMapping("/hello")
-    @SendTo("/topic/greetings") // Sends the response to subscribers of /topic/greetings
+    @SendTo("/topic/greetings") // Sends the response to the subscribers of /topic/greetings
     public Greetings greeting(HelloMessage message) throws Exception {
         Thread.sleep(1000);
         return new Greetings("Hello !");
