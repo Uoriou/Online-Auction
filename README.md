@@ -45,6 +45,7 @@ to access the default Django admin panel
 Then apply the Django databse migrations:
 
 ```bash
+  docker compose exec python-backend python3 manage.py makemigrations
   docker compose exec python-backend python3 manage.py migrate
 ```
 
