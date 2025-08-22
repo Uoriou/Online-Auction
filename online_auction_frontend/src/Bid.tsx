@@ -130,6 +130,7 @@ const Bid = () => {
             formData.append("starting_price" ,item.starting_price.toString());
             formData.append("current_price" ,new_bid.toString()); //update the price
             try{
+                //Create a json format data structure to be send 
                 const bid = {
                     "item_id":item.id,
                     "new_bid_price":new_bid

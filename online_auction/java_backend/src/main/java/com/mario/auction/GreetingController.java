@@ -37,12 +37,6 @@ public class GreetingController {
         Thread.sleep(1000);
         return new Greetings("Hello !");
     }
-    //To broadcast to all the client
-    @MessageMapping("/test")
-    public void test(String message){
-        System.out.println("YES");
-        //messagingTemplate.convertAndSend("/topic/bids");
-    }
 
 
 }

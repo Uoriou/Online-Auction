@@ -20,7 +20,7 @@ services:
       volumes:
         - ./online_auction_frontend:/app 
       environment:
-        - ESLINT_NO_CACHE=true
+        - DISABLE_ESLINT_PLUGIN=true
         - CHOKIDAR_USEPOLLING=true
 
       
