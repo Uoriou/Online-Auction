@@ -55,7 +55,7 @@ const Bid = () => {
     const { id } = useParams<{ id: string }>();
     const [item, setItem] = useState<Item | null>();
     const [bidHistory,setBidHistory] = useState<string[]>([]);//Change the data type
-    let bidsArr: string[] = []; // creating an dynamic array for stacks
+    const [bidsRt,setBidsRt] = useState<string[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
 
     
@@ -103,6 +103,8 @@ const Bid = () => {
         onConnect: () => {
             stompClient.subscribe('/topic/greetings', message => {
                 console.log('Received message:', JSON.parse(message.body)); 
+                //Then update the useState for real time bids
+                setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
             });
         },
         onDisconnect: () => {
@@ -114,7 +116,7 @@ const Bid = () => {
         },
     });
 
-    stompClient.activate(); 
+   
     
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -130,27 +132,19 @@ const Bid = () => {
             formData.append("starting_price" ,item.starting_price.toString());
             formData.append("current_price" ,new_bid.toString()); //update the price
             try{
-                //Create a json format data structure to be send 
-                const bid = {
-                    "item_id":item.id,
-                    "new_bid_price":new_bid
-                }
-                //socket.send(JSON.stringify(bid)); 
-                // Sending to Java backend websocket :
+                
+                // Sending to Java backend websocket
                 if(stompClient){
                     console.log("Sending...")
                     stompClient.publish({
                         destination: '/app/hello', 
-                        body: JSON.stringify(bid),
+                        body: JSON.stringify( {
+                            "itemId":item.id, // Changed from item_id
+                            "bidPrice":new_bid //Changed from new_bid_price
+                        }),
                     });
                 }else{
                     console.error("WebSocket stomp disconnected");
-                }
-                
-                    // Then, dynamically adjust the number of stacks
-                    //  as the prices from the web socket get placed
-                if(new_bid){
-                    bidsArr.push(new_bid.toString());// change it to use state 
                 }
                 setOpen(true)
             }catch(e){
@@ -180,6 +174,8 @@ const Bid = () => {
         }
     }
 
+    stompClient.activate(); 
+
     const handleClose = (event?: React.SyntheticEvent | Event,
         reason?: SnackbarCloseReason,) =>{
         setOpen(false);
@@ -187,9 +183,6 @@ const Bid = () => {
     // Item stacks expand dynamically as bids get placed
     // Create an array to simulate the expanding Item stacks 
     //But first show placed bids price if any, then real-time changes can take place
-    const alreadyPlaced = () => {// show the already placed bids, retrieve them from Django
-
-    }
 
     useEffect(() => {
         fetchItemToBid();
@@ -238,7 +231,7 @@ const Bid = () => {
                     {/*The argument is going to be a bid price */}   
                     <Stack>
                         <Item>
-                            {bidsArr} {/*Use useState instead */}
+                            {} {/*Use useState instead */}
                         </Item >
                     </Stack>
                 </Grid>

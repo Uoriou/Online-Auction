@@ -18,6 +18,8 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     }
 }*/
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
@@ -30,12 +32,17 @@ public class GreetingController {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+    private static final Logger log = LoggerFactory.getLogger(GreetingController.class);
 
     @MessageMapping("/hello")
     @SendTo("/topic/greetings") // Sends the response to the subscribers of /topic/greetings
-    public Greetings greeting(HelloMessage message) throws Exception {
+    public Bids greeting(String itemId, String bidPrice) throws Exception {
         Thread.sleep(1000);
-        return new Greetings("Hello !");
+        // TODO; Update the bid price here which is displayed on the fontend 
+        // TODO start by printin out what is received from the frontend
+        log.info("Received message: {}", itemId); // why null ?
+
+        return new Bids(itemId,bidPrice); // Return the message to be sent to subscribers
     }
 
 

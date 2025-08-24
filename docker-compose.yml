@@ -30,6 +30,9 @@ services:
       - "8080:8080"
     depends_on:
       - frontend
+    volumes:
+      - ./online_auction/java-backend:/app
+
 
   python-backend:
     build: ./online_auction/python_backend
