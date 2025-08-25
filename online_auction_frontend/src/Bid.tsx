@@ -1,4 +1,4 @@
-import React, { useEffect, useState,  } from 'react';
+import React, { useEffect, useState, useRef} from 'react';
 import axios from 'axios';
 import { useLocation,useParams } from 'react-router-dom';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
@@ -55,7 +55,8 @@ const Bid = () => {
     const { id } = useParams<{ id: string }>();
     const [item, setItem] = useState<Item | null>();
     const [bidHistory,setBidHistory] = useState<string[]>([]);//Change the data type
-    const [bidsRt,setBidsRt] = useState<string[]>([]); // Bids to be displayed on the stack 
+    const stompClientRef = useRef<any>(null); // keep client reference
+    const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
 
     
@@ -92,31 +93,39 @@ const Bid = () => {
         }
 
         return accessToken;
-    }
-    
-    const stompClient = new Client({
-        brokerURL: 'ws://localhost:8080/websocket',
-        webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
-        debug: (str) => {
-            console.log(str); // It is printing out some messages 
-        }, 
-        onConnect: () => {
-            stompClient.subscribe('/topic/greetings', message => {
-                console.log('Received message:', JSON.parse(message.body)); 
-                //Then update the useState for real time bids
-                setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
-            });
-        },
-        onDisconnect: () => {
-            console.log('Disconnected from WebSocket');
-        },
-        onStompError: frame => {
-            console.error('Broker reported error:', frame.headers['message']);
-            console.error('Additional details:', frame.body);
-        },
-    });
+    } 
 
-   
+     useEffect(() => {
+        fetchItemToBid();
+        getAccessToken();
+
+        const stompClient = new Client({
+            brokerURL: 'ws://localhost:8080/websocket',
+            webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
+            debug: (str) => {
+                console.log(str); // It is printing out some messages 
+            }, 
+            onConnect: () => {
+                stompClient.subscribe('/topic/greetings', message => {
+                    console.log('Received message:', JSON.parse(message.body)); 
+                    // {itemId: x,bidPrice: y}
+                    //Then update the useState for real time bids --> correct ? 
+                    setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
+                     
+                });
+            },
+            onDisconnect: () => {
+                console.log('Disconnected from WebSocket');
+            },
+            onStompError: frame => {
+                console.error('Broker reported error:', frame.headers['message']);
+                console.error('Additional details:', frame.body);
+            },
+        });
+
+        stompClientRef.current = stompClient;
+        stompClient.activate(); 
+    },[]);
     
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -134,9 +143,10 @@ const Bid = () => {
             try{
                 
                 // Sending to Java backend websocket
-                if(stompClient){
+                if(stompClientRef.current && stompClientRef.current.connected){ // previously if(stompClient) 
                     console.log("Sending...")
-                    stompClient.publish({
+                    //previously stompClient.publish()
+                    stompClientRef.current.publish({
                         destination: '/app/hello', 
                         body: JSON.stringify( {
                             "itemId":item.id, // Changed from item_id
@@ -144,15 +154,13 @@ const Bid = () => {
                         }),
                     });
                 }else{
-                    console.error("WebSocket stomp disconnected");
+                    console.error("Not connected to the websocket");
                 }
                 setOpen(true)
             }catch(e){
                 alert("Problem with the websocket sending")
                 console.error(e)
             // The following is a python segment to simply update the price of an item
-            // TODO, well here is an idea -> what about displaying every bid price, while keeping the 
-            // TODO original price there on the screen ?
             }
             /*try{
 
@@ -174,8 +182,6 @@ const Bid = () => {
         }
     }
 
-    stompClient.activate(); 
-
     const handleClose = (event?: React.SyntheticEvent | Event,
         reason?: SnackbarCloseReason,) =>{
         setOpen(false);
@@ -184,12 +190,7 @@ const Bid = () => {
     // Create an array to simulate the expanding Item stacks 
     //But first show placed bids price if any, then real-time changes can take place
 
-    useEffect(() => {
-        fetchItemToBid();
-        getAccessToken();
-       
-
-    },[]);
+   
 
     return (
         <>
@@ -226,12 +227,19 @@ const Bid = () => {
                
                 {/*Web socket real time bid inside a box -- >  */}
                 <Grid sx={{ backgroundColor: 'grey.200', p: 2 }}>
-                    Bid History
+                    Real Time Bids Transactions
                     
                     {/*The argument is going to be a bid price */}   
                     <Stack>
                         <Item>
-                            {} {/*Use useState instead */}
+                            {/*Just need to add one but the same price gets added for the length of array */}
+                            {/* // ? So instead use a simple array ? */}
+                            {bidsRt.map((bid, index) => (
+                                <li key={index}>
+                                    ✔️ Price: {bid.bidPrice} €
+                                </li>
+                            ))}
+                            
                         </Item >
                     </Stack>
                 </Grid>
