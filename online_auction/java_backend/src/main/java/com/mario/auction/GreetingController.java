@@ -36,13 +36,13 @@ public class GreetingController {
 
     @MessageMapping("/hello")
     @SendTo("/topic/greetings") // Sends the response to the subscribers of /topic/greetings
-    public Bids greeting(String itemId, String bidPrice) throws Exception {
+    public Bids bids(Bids message) throws Exception {
         Thread.sleep(1000);
-        // TODO; Update the bid price here which is displayed on the fontend 
+        // TODO; Update the bid price here which is broadcasted to the other clients 
         // TODO start by printin out what is received from the frontend
-        log.info("Received message: {}", itemId); // why null ?
+        log.info("Received message: {}", message.getItemId());
 
-        return new Bids(itemId,bidPrice); // Return the message to be sent to subscribers
+        return new Bids(message.getItemId(),message.getBidPrice()); // Return the message to be sent to subscribers
     }
 
 
