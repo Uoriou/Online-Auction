@@ -42,7 +42,7 @@ Make sure to run the project container.
 Once the container is up and running, go back to where python-backend is located and create a superuser
 to access the default Django admin panel 
 ```bash
-   docker-compose web exec python3 manage.py createsuperuser
+   docker compose exec python-backend python3 manage.py createsuperuser
 ```
 Then apply the Django databse migrations:
 
