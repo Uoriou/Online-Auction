@@ -2,6 +2,11 @@
 
 ## Project Overview
 
+"eBid", a budding online auction platform, allows users to list items for auction and enable
+real-time bidding. Each auction on "eBid" has a set duration. The platform tracks these timers and
+automatically determine the winning bid when the auction ends. Both the seller and the winning
+bidder should receive notifications.
+
 ## Technical Requirements:
 To run Online-Auction, please ensure that your system meets the following requirements:
 
