@@ -23,9 +23,6 @@ To run Online-Auction, please ensure that your system meets the following requir
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
-## Architecture 
-
-![alt text](https://github.com/[Uoriou]/[Online-Auction]/blob/[main]/architecture.jpg?raw=true)
 
 ## Installation Guidline
 This project is deployed on Docker, therefore 
