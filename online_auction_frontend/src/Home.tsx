@@ -18,10 +18,7 @@ interface Item {
 const Home = () => {
 
     const [item, setItem] = useState<Item[]>([]);
-
-    const API_URL_DJANGO= "http://127.0.0.1:8000/auction/items/";
-    const API_URL_CROW = "http://localhost:9181/items";
-
+    
     function fetchItems(){
         //I think we can  use CROW C++ API here
         //"http://127.0.0.1:8000/auction/items/" -> Django
