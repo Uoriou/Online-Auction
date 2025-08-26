@@ -36,8 +36,8 @@ public class GreetingController {
         bidEntity.setItemId(message.getItemId());
         bidEntity.setBidPrice(message.getBidPrice());
         BidEntity savedBid = bidRepository.save(bidEntity);// Save to the database
-
-        return new Bids(message.getItemId(),message.getBidPrice()); // Return the message to be sent to the subscribers
+        //If saved successfully, broadcast to all subscribers
+        return new Bids(savedBid.getItemId(),savedBid.getBidPrice()); // Return the message to be sent to the subscribers
     }
 
 
