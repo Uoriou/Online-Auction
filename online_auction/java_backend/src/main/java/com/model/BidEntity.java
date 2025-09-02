@@ -16,7 +16,7 @@ public class BidEntity {
     @Column(precision = 19, scale = 2)
     private String bidPrice;
 
-    private Instant createdAt = Instant.now();
+    //private Instant createdAt = Instant.now();
 
     public BidEntity() {}
 

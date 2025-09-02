@@ -58,8 +58,8 @@ const Bid = () => {
     const stompClientRef = useRef<any>(null); // keep client reference
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
+    let secondsLeft = 10; // timer 
 
-    
     function fetchItemToBid(){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
         .then((res) =>{
@@ -107,11 +107,17 @@ const Bid = () => {
             }, 
             onConnect: () => {
                 stompClient.subscribe('/topic/greetings', message => {
-                    console.log('Received message:', JSON.parse(message.body)); 
+                    console.log('Received message for the transactions:', JSON.parse(message.body)); 
                     // {itemId: x,bidPrice: y}
-                    //Then update the useState for real time bids --> correct ? 
+                    //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
                      
+                });
+                stompClient.subscribe('/topic/timer',message=>{
+                  console.log('Received message for the timer:', JSON.parse(message.body));  
+                });
+                stompClient.publish({
+                    destination: "app/timerHello"
                 });
             },
             onDisconnect: () => {
@@ -125,7 +131,27 @@ const Bid = () => {
 
         stompClientRef.current = stompClient;
         stompClient.activate(); 
+       
     },[]);
+
+    useEffect(() =>{
+
+        const countdown = setInterval(() => {
+            console.log(`Time left: ${secondsLeft} seconds`);
+            secondsLeft--;
+
+            if (secondsLeft < 0) {
+                clearInterval(countdown); // Stop the timer when it reaches zero
+                console.log("Timer complete!");
+            }
+        }, 1000);
+
+      
+
+    },[]);
+    //web socket
+    
+
     
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -153,6 +179,7 @@ const Bid = () => {
                             "bidPrice":new_bid //Changed from new_bid_price
                         }),
                     });
+
                 }else{
                     console.error("Not connected to the websocket");
                 }
@@ -161,6 +188,8 @@ const Bid = () => {
                 alert("Problem with the websocket sending")
                 console.error(e)
             // The following is a python segment to simply update the price of an item
+            // TODO, Update the price of an item only after the auction timer is up
+            // TODO until then, just display the most recent bid price on the price section 
             }
             /*try{
 
@@ -228,7 +257,6 @@ const Bid = () => {
                 {/*Web socket real time bid inside a box -- >  */}
                 <Grid sx={{ backgroundColor: 'grey.200', p: 2 }}>
                     Real Time Bids Transactions
-                    
                     {/*The argument is going to be a bid price */}   
                     <Stack>
                         <Item>

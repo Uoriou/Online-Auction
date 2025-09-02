@@ -47,7 +47,7 @@ def get_item(request, id):
     item = Item.objects.get(id=id)
     serialized_item = ItemSerializer(item).data
     return JsonResponse(serialized_item, safe=False)
-
+#Updating a bid price
 @api_view(['POST']) 
 @permission_classes([IsAuthenticated])
 def bid_item(request, id):
@@ -63,6 +63,6 @@ def bid_item(request, id):
         print("Error:", serialized_item.errors)
         return JsonResponse(serialized_item.errors, safe=False)
 
-# TODO: Add Delete, Update functions 
+# TODO: Add Delete
     
    

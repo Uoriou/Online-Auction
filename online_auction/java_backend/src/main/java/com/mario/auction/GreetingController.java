@@ -28,17 +28,21 @@ public class GreetingController {
     @SendTo("/topic/greetings") // Sends the response to the subscribers of /topic/greetings
     public Bids bids(Bids message) throws Exception {
         Thread.sleep(1000);
-        // TODO; Update the bid price here which is broadcasted to the other clients 
+        // TODO; Update the bid price by connecting to the Django backend 
+        // TODO or connect directly to the database but do not update the price until the timer is up
         // Store in the database the bid price 
         log.info("Received message: {}", message.getItemId());
-       
-        BidEntity bidEntity = new BidEntity();
-        bidEntity.setItemId(message.getItemId());
-        bidEntity.setBidPrice(message.getBidPrice());
-        BidEntity savedBid = bidRepository.save(bidEntity);// Save to the database
+
         //If saved successfully, broadcast to all subscribers
-        return new Bids(savedBid.getItemId(),savedBid.getBidPrice()); // Return the message to be sent to the subscribers
+        return new Bids(message.getItemId(),message.getBidPrice()); // Return the message to be sent to the subscribers
     }
 
+    @MessageMapping("/timerHello")
+    @SendTo("/topic/timer") // Sends the response to the subscribers of /topic/greetings
+    public Time time(Time time) throws Exception {
+        log.info("Received message: {}", time.getTime());
+        return new Time(time.getTime()); // Return the message to be sent to the subscribers
+
+    }
 
 }

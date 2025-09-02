@@ -1,5 +1,5 @@
 package com.mario.auction;
-
+// Data Transfer Object (DTO) for WebSocket communication 
 public class Bids {
 
     private String itemId;
