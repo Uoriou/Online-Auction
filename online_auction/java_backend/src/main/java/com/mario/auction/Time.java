@@ -2,18 +2,18 @@ package com.mario.auction;
 // DTO for timer 
 public class Time {
 
-    private String time;
+    private int time;
 
     public Time() {
         
     }   
-    public Time(String time) {
+    public Time(int time) {
         this.time = time;
     }       
-    public String getTime() {
+    public int getTime() {
         return time;
     }       
-    public void setTime(String time) {
+    public void setTime(int time) {
         this.time = time;
     }
     

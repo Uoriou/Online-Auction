@@ -28,7 +28,7 @@ function App() {
   return (
 
     <Router>
-       <AppBar position="static" sx={{ backgroundColor: "#f4d1a4" }}>
+       <AppBar position="static" sx={{ backgroundColor: "#556B2F" }}>
           <Toolbar>
           <Box sx={{ flexGrow: 1 }}>
             <Link data-toggle="tab" href="/items"  underline="none" sx={{ mr: 3, color: "#000000" }}>Items</Link>

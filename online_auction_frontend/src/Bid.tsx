@@ -58,7 +58,8 @@ const Bid = () => {
     const stompClientRef = useRef<any>(null); // keep client reference
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
-    let secondsLeft = 10; // timer 
+    let secondsLeft = 10; // logging the time for debugging 
+    const [timer,setTimer] = useState<any>(); // useState to display the time on the screen
 
     function fetchItemToBid(){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
@@ -113,11 +114,10 @@ const Bid = () => {
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
                      
                 });
+                //! The code is erroneous
                 stompClient.subscribe('/topic/timer',message=>{
-                  console.log('Received message for the timer:', JSON.parse(message.body));  
-                });
-                stompClient.publish({
-                    destination: "app/timerHello"
+                    console.log('Received message for the timer:', JSON.parse(message.body));  
+                    setTimer((prev:any)=> JSON.parse(message.body) + 1); // is there a return type mismatch ?
                 });
             },
             onDisconnect: () => {
@@ -139,19 +139,19 @@ const Bid = () => {
         const countdown = setInterval(() => {
             console.log(`Time left: ${secondsLeft} seconds`);
             secondsLeft--;
-
+            // TODO Make sure java websocket receives the time 
+            stompClientRef.current.publish({
+                destination:"/timerHello",
+                 body: JSON.stringify( {
+                    "time":secondsLeft,  
+                }),
+            });
             if (secondsLeft < 0) {
                 clearInterval(countdown); // Stop the timer when it reaches zero
                 console.log("Timer complete!");
             }
         }, 1000);
-
-      
-
     },[]);
-    //web socket
-    
-
     
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -215,10 +215,6 @@ const Bid = () => {
         reason?: SnackbarCloseReason,) =>{
         setOpen(false);
     }
-    // Item stacks expand dynamically as bids get placed
-    // Create an array to simulate the expanding Item stacks 
-    //But first show placed bids price if any, then real-time changes can take place
-
    
 
     return (

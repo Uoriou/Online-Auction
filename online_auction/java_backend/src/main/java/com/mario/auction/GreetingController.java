@@ -31,16 +31,17 @@ public class GreetingController {
         // TODO; Update the bid price by connecting to the Django backend 
         // TODO or connect directly to the database but do not update the price until the timer is up
         // Store in the database the bid price 
-        log.info("Received message: {}", message.getItemId());
+        log.info("Received bid info: {}", message.getItemId());
 
         //If saved successfully, broadcast to all subscribers
+        //But the following is a bit dodgy, not the best way to do it
         return new Bids(message.getItemId(),message.getBidPrice()); // Return the message to be sent to the subscribers
     }
 
     @MessageMapping("/timerHello")
     @SendTo("/topic/timer") // Sends the response to the subscribers of /topic/greetings
     public Time time(Time time) throws Exception {
-        log.info("Received message: {}", time.getTime());
+        log.info("Received time info: {}", time.getTime());
         return new Time(time.getTime()); // Return the message to be sent to the subscribers
 
     }
