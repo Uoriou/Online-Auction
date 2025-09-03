@@ -98,7 +98,12 @@ const Bid = () => {
         return accessToken;
     } 
 
-     useEffect(() => {
+    const hello = () => {
+        console.log("YOOOOOOOOO");
+    }
+
+
+    useEffect(() => {
         fetchItemToBid();
         getAccessToken();
 
@@ -110,19 +115,32 @@ const Bid = () => {
             }, 
             onConnect: () => {
                 stompClient.subscribe('/topic/greetings', message => {
-                    //! why am i receiving more than one responses ? A react thing ? The counter jumps sometimes 
-                    // ! This happens upon a reload 
                     console.log('Received message for the transactions:', JSON.parse(message.body)); 
-                    // {itemId: x,bidPrice: y}
                     //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
-                     
+                    hello(); // Executed only once
                 });
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
                     console.log('Received message for the timer:', Number(time));  
                     setTimer((prev:any)=> Number(time) + 1);
                 });
+                // TODO make sure this behaves normally 
+                const countDown = setInterval(() => {
+                    console.log(`Time left: ${secondsLeft} seconds`);
+                    secondsLeft--;
+                    stompClient.publish({
+                        destination:"/app/timerHello",
+                        body: JSON.stringify( {
+                            "time":secondsLeft,  
+                        }),
+                    });
+                    if (secondsLeft <= 0) {
+                        clearInterval(countDown); 
+                        setIsTimerUp(true);
+                        return ;
+                    }
+                }, 1000);
             },
             onDisconnect: () => {
                 console.log('Disconnected from WebSocket');
@@ -135,11 +153,17 @@ const Bid = () => {
 
         stompClientRef.current = stompClient;
         stompClient.activate(); 
+        // !  I just added this, could be erroneous
+        return () => {
+            console.log("Cleaning up WebSocket...");
+            stompClient.deactivate();
+            stompClientRef.current = null;
+        };
        
     },[]);
 
-    useEffect(() =>{
-
+    /* useEffect(() =>{
+        // TODO Take the following block of code out of here and call it inside the websocket above
         const countDown = setInterval(() => {
             console.log(`Time left: ${secondsLeft} seconds`);
             secondsLeft--;
@@ -155,7 +179,7 @@ const Bid = () => {
                 return ;
             }
         }, 1000);
-    },[]);
+    },[]);*/
    
     async function handleBidSubmit(e:React.SyntheticEvent){
         
@@ -224,6 +248,7 @@ const Bid = () => {
         <>
             <h1>Item: {item?.name} </h1> 
             <TimerIcon/> {timer} {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
+            {isTimerUp && <h1>Time up !</h1>}
             <Box display="flex" gap={2}>
                 {/*The leftmost grid */}
                 <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
