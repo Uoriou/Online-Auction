@@ -111,7 +111,7 @@ const Bid = () => {
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
             debug: (str) => {
-                console.log(str); // It is printing out some messages 
+                console.log(str); // It is printing out some debug messages 
             }, 
             onConnect: () => {
                 stompClient.subscribe('/topic/greetings', message => {
