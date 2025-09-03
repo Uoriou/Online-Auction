@@ -97,7 +97,7 @@ const Bid = () => {
 
         return accessToken;
     } 
-
+    // Just to test the useEffect
     const hello = () => {
         console.log("YOOOOOOOOO");
     }
@@ -135,7 +135,7 @@ const Bid = () => {
                             "time":secondsLeft,  
                         }),
                     });
-                    if (secondsLeft <= 0) {
+                    if (secondsLeft < 0) {
                         clearInterval(countDown); 
                         setIsTimerUp(true);
                         return ;
@@ -161,25 +161,6 @@ const Bid = () => {
         };
        
     },[]);
-
-    /* useEffect(() =>{
-        // TODO Take the following block of code out of here and call it inside the websocket above
-        const countDown = setInterval(() => {
-            console.log(`Time left: ${secondsLeft} seconds`);
-            secondsLeft--;
-            stompClientRef.current.publish({
-                destination:"/app/timerHello",
-                 body: JSON.stringify( {
-                    "time":secondsLeft,  
-                }),
-            });
-            if (secondsLeft <= 0) {
-                clearInterval(countDown); 
-                setIsTimerUp(true);
-                return ;
-            }
-        }, 1000);
-    },[]);*/
    
     async function handleBidSubmit(e:React.SyntheticEvent){
         
