@@ -53,7 +53,7 @@ Then apply the Django databse migrations:
 
 Access the application at: 
 ``` bash
-    http://localhost:3000/login 
+    localhost:3000/login 
 ```
 
 To stop the application run:
