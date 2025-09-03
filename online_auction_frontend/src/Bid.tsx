@@ -12,6 +12,7 @@ import Box from '@mui/material/Box';
 import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
+import TimerIcon from '@mui/icons-material/Timer';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -59,7 +60,8 @@ const Bid = () => {
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
     let secondsLeft = 10; // logging the time for debugging 
-    const [timer,setTimer] = useState<any>(); // useState to display the time on the screen
+    const [timer,setTimer] = useState<Number>(); // useState to display the time on the screen
+    const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false);
 
     function fetchItemToBid(){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
@@ -108,16 +110,18 @@ const Bid = () => {
             }, 
             onConnect: () => {
                 stompClient.subscribe('/topic/greetings', message => {
+                    //! why am i receiving more than one responses ? A react thing ? The counter jumps sometimes 
+                    // ! This happens upon a reload 
                     console.log('Received message for the transactions:', JSON.parse(message.body)); 
                     // {itemId: x,bidPrice: y}
                     //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
                      
                 });
-                //! The code is erroneous
                 stompClient.subscribe('/topic/timer',message=>{
-                    console.log('Received message for the timer:', JSON.parse(message.body));  
-                    setTimer((prev:any)=> JSON.parse(message.body) + 1); // is there a return type mismatch ?
+                    let time = JSON.parse(message.body)["time"] 
+                    console.log('Received message for the timer:', Number(time));  
+                    setTimer((prev:any)=> Number(time) + 1);
                 });
             },
             onDisconnect: () => {
@@ -136,23 +140,23 @@ const Bid = () => {
 
     useEffect(() =>{
 
-        const countdown = setInterval(() => {
+        const countDown = setInterval(() => {
             console.log(`Time left: ${secondsLeft} seconds`);
             secondsLeft--;
-            // TODO Make sure java websocket receives the time 
             stompClientRef.current.publish({
-                destination:"/timerHello",
+                destination:"/app/timerHello",
                  body: JSON.stringify( {
                     "time":secondsLeft,  
                 }),
             });
-            if (secondsLeft < 0) {
-                clearInterval(countdown); // Stop the timer when it reaches zero
-                console.log("Timer complete!");
+            if (secondsLeft <= 0) {
+                clearInterval(countDown); 
+                setIsTimerUp(true);
+                return ;
             }
         }, 1000);
     },[]);
-    
+   
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -179,7 +183,6 @@ const Bid = () => {
                             "bidPrice":new_bid //Changed from new_bid_price
                         }),
                     });
-
                 }else{
                     console.error("Not connected to the websocket");
                 }
@@ -220,6 +223,7 @@ const Bid = () => {
     return (
         <>
             <h1>Item: {item?.name} </h1> 
+            <TimerIcon/> {timer} {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
             <Box display="flex" gap={2}>
                 {/*The leftmost grid */}
                 <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
@@ -235,7 +239,7 @@ const Bid = () => {
                             </picture>
                             
                             <p>Description: {item.description}</p>
-                            <h3>Initial Price €: {item.starting_price}</h3> 
+                            {/*<h3>Initial Price €: {item.starting_price}</h3>*/ }
                             <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
                         </div>
                         ): 
