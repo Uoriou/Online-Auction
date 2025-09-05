@@ -13,6 +13,7 @@ import Paper from '@mui/material/Paper';
 import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 import TimerIcon from '@mui/icons-material/Timer';
+import { Typography } from "@mui/material";
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -60,7 +61,7 @@ const Bid = () => {
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
     let secondsLeft = 10; // logging the time for debugging 
-    const [timer,setTimer] = useState<Number>(); // useState to display the time on the screen
+    const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
     const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false);
 
     function fetchItemToBid(){
@@ -123,7 +124,7 @@ const Bid = () => {
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
                     console.log('Received message for the timer:', Number(time));  
-                    setTimer((prev:any)=> Number(time) + 1);
+                    setTimer((prev)=> Number(time) + 1);
                 });
                 // TODO make sure this behaves normally 
                 const countDown = setInterval(() => {
@@ -228,11 +229,19 @@ const Bid = () => {
     return (
         <>
             <h1>Item: {item?.name} </h1> 
-            <TimerIcon/> {timer} {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
-            {isTimerUp && <h1>Time up !</h1>}
+             {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
+            {isTimerUp && <Typography variant="body1" color="error">The item is no longer available </Typography>}
+
+            {!isTimerUp && (
+                <Typography variant="body1" color="textSecondary">
+                    <TimerIcon/> Time left: {timer}s
+                </Typography>
+            )}         
+  
             <Box display="flex" gap={2}>
                 {/*The leftmost grid */}
                 <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
+                    
                     {item ? (
                         <div key={item.id}>
                             {/*Apparently you are mediocre if you use <img> */}
@@ -245,19 +254,33 @@ const Bid = () => {
                             </picture>
                             
                             <p>Description: {item.description}</p>
-                            {/*<h3>Initial Price €: {item.starting_price}</h3>*/ }
+                            
                             <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
                         </div>
                         ): 
-                        ( <p>Loading...</p>)
-                    }
-                    Price €: 
-                    <form onSubmit={handleBidSubmit}>
-                        <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
-                        <Button type="submit"> 
-                            Place bid
-                        </Button>
-                    </form>
+                        ( <p>Loading...</p>) 
+                    }{/*Want a Kind of switch statement to display time up message apart from Loading or use nested if statements */}
+                    {item && !isTimerUp ? (
+                        <form onSubmit={handleBidSubmit}>
+                            <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
+                            <Button type="submit"> 
+                                Place bid €
+                            </Button>
+                        </form>
+                        ) : (
+                        <Typography
+                            variant="h5"
+                            fontWeight="bold"
+                            color="error"
+                            sx={{
+                                position: "absolute",
+                                fontSize: "2rem",
+                                opacity: 0.9,
+                            }}
+                        >
+                        SOLD 
+                        </Typography>
+                    )}
                 </Grid>
                
                 {/*Web socket real time bid inside a box -- >  */}
