@@ -107,7 +107,8 @@ const Bid = () => {
     useEffect(() => {
         fetchItemToBid();
         getAccessToken();
-
+        // ! The timer is synchronized but the JSX elements are not 
+        // TODO make sure the JSX elements are also synchronized
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
@@ -162,7 +163,11 @@ const Bid = () => {
         };
        
     },[]);
-   
+    function TestComponent(){
+        return(
+            <h1>Hello from a test component {item?.name} </h1>
+        )
+    }
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -196,10 +201,11 @@ const Bid = () => {
             }catch(e){
                 alert("Problem with the websocket sending")
                 console.error(e)
+            } 
             // The following is a python segment to simply update the price of an item
             // TODO, Update the price of an item only after the auction timer is up
             // TODO until then, just display the most recent bid price on the price section 
-            }
+            // TODO could import it from a different file to practice decomposition  
             /*try{
 
                 await axios.post(`http://127.0.0.1:8000/auction/bid/${id}/`,formData,{
@@ -224,11 +230,11 @@ const Bid = () => {
         reason?: SnackbarCloseReason,) =>{
         setOpen(false);
     }
-   
 
     return (
         <>
             <h1>Item: {item?.name} </h1> 
+            <TestComponent/>
              {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
             {isTimerUp && <Typography variant="body1" color="error">The item is no longer available </Typography>}
 
@@ -239,7 +245,9 @@ const Bid = () => {
             )}         
   
             <Box display="flex" gap={2}>
-                {/*The leftmost grid */}
+                {/* // ! The web socket not handling the JSX elements synchronization yet */}
+                {/* // TODO Consider it by sending only the string "SOLD" to the java backend and update the useState
+                // TODO just like with timer (Save the status into the db) */}
                 <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
                     
                     {item ? (
@@ -286,17 +294,13 @@ const Bid = () => {
                 {/*Web socket real time bid inside a box -- >  */}
                 <Grid sx={{ backgroundColor: 'grey.200', p: 2 }}>
                     Real Time Bids Transactions
-                    {/*The argument is going to be a bid price */}   
                     <Stack>
                         <Item>
-                            {/*Just need to add one but the same price gets added for the length of array */}
-                            {/* // ? So instead use a simple array ? */}
                             {bidsRt.map((bid, index) => (
                                 <li key={index}>
                                     ✔️ Price: {bid.bidPrice} €
                                 </li>
                             ))}
-                            
                         </Item >
                     </Stack>
                 </Grid>
