@@ -30,9 +30,9 @@ This project is deployed on Docker, therefore
 - Please install Docker desktop: https://www.docker.com/products/docker-desktop/
 - Make sure to clone this Online-Auction repository
 
-## Run the docker image
+## Run the application using the docker image
 
-Once Docker is installed, it is possible to use the .yml file of this project to build the docker image to run the project using this command: 
+Once Docker / Docker desktop is installed, make sure to navigate to where docker-compose.yml file is located to run the project using this command: 
 ```bash 
     docker compose up -d --build 
 ```
