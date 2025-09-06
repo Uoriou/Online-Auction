@@ -62,7 +62,9 @@ const Bid = () => {
     const [open,setOpen] = React.useState(false);
     let secondsLeft = 10; // logging the time for debugging 
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
-    const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false);
+    const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false); 
+    //If the timer is up, then set the item status, which also hides the bid button
+    const [itemStatus,setItemStatus] = useState<string>(""); 
 
     function fetchItemToBid(){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
@@ -105,8 +107,9 @@ const Bid = () => {
 
 
     useEffect(() => {
-        fetchItemToBid();
-        getAccessToken();
+        
+        fetchItemToBid();//Necessary token function
+        getAccessToken(); //Necessary token function
         // ! The timer is synchronized but the JSX elements are not 
         // TODO make sure the JSX elements are also synchronized
         const stompClient = new Client({
@@ -127,7 +130,11 @@ const Bid = () => {
                     console.log('Received message for the timer:', Number(time));  
                     setTimer((prev)=> Number(time) + 1);
                 });
-                // TODO make sure this behaves normally 
+                stompClient.subscribe('/topic/status',message=>{
+                    console.log("Received message for the status:" ,message.toString());
+                    setItemStatus(message.toString());
+                });
+                //Timer countdown
                 const countDown = setInterval(() => {
                     console.log(`Time left: ${secondsLeft} seconds`);
                     secondsLeft--;
@@ -140,6 +147,8 @@ const Bid = () => {
                     if (secondsLeft < 0) {
                         clearInterval(countDown); 
                         setIsTimerUp(true);
+                        //TODO sends the "SOLD" message to the backend also broadcasts the message to others
+
                         return ;
                     }
                 }, 1000);
