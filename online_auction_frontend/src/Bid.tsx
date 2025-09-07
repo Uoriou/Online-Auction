@@ -131,8 +131,8 @@ const Bid = () => {
                     setTimer((prev)=> Number(time) + 1);
                 });
                 stompClient.subscribe('/topic/status',message=>{
-                    console.log("Received message for the status:" ,message.toString());
-                    setItemStatus(message.toString());
+                    console.log("Received message for the status:" ,JSON.parse(message.body));
+                    //setItemStatus(message.toString());
                 });
                 //Timer countdown
                 const countDown = setInterval(() => {
@@ -147,8 +147,14 @@ const Bid = () => {
                     if (secondsLeft < 0) {
                         clearInterval(countDown); 
                         setIsTimerUp(true);
+                        console.log("OI")
                         //TODO sends the "SOLD" message to the backend also broadcasts the message to others
-
+                        stompClient.publish({
+                            destination:"/app/itemStatus",
+                            body: JSON.stringify({
+                                "status":"SOLD",
+                            })
+                        });
                         return ;
                     }
                 }, 1000);
