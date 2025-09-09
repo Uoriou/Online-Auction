@@ -36,14 +36,11 @@ const CreateItem = () => {
     const [startingPrice,setStartingPrice] = useState(0);
     const [currentPrice,setCurrentPrice] = useState(0);
 
-
+    // ! In models.py a new filed available duration has been created so an erroneous behaviour is expected here 
     async function handleOnSubmit(e: React.SyntheticEvent){
         e.preventDefault();
         if(!file) return;//In case theres something wrong with on change
         setStatus('pending');
-        
-        //is_active field is switched using crud update 
-        //It is possible to create useStates for each filed; name, description...
         const formData = new FormData();
         formData.append("name" ,name);
         formData.append("description" ,description);

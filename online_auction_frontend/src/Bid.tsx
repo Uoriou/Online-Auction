@@ -28,16 +28,17 @@ const Item = styled(Paper)(({ theme }) => ({
 
 //A user can only bet if they are registered and authenticated
 //The above logic is handled in Login.tsx
-
+//The fields should be exactly the same as models.py
 interface Item  {
-    //The field should be exactly the same as models.py
+    
     id:number,
     name:string,
     description:string,
     image:string,
     starting_price:number,
     current_price:number,
-    is_active:Boolean
+    is_active:Boolean,
+    available_duration:number
 
 }
 
@@ -50,6 +51,7 @@ const defaultItem: Item = {
     starting_price:0,
     current_price:0,
     is_active:false,
+    available_duration:0
 }
 
 const Bid = () => {
@@ -60,7 +62,6 @@ const Bid = () => {
     const stompClientRef = useRef<any>(null); // keep client reference
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
-    let secondsLeft = 10; // logging the time for debugging 
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
     const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false); 
     //If the timer is up, then set the item status, which also hides the bid button
@@ -100,18 +101,15 @@ const Bid = () => {
 
         return accessToken;
     } 
-    // Just to test the useEffect
-    const hello = () => {
-        console.log("YOOOOOOOOO");
-    }
-
-
+    
     useEffect(() => {
         
         fetchItemToBid();//Necessary token function
         getAccessToken(); //Necessary token function
         // ! The timer is synchronized but the JSX elements are not 
-        // TODO make sure the JSX elements are also synchronized
+        // TODO Better not to include websocket logic inside an useState if logic
+        // TODO Isolate websocket  
+        // TODO start the timer when the first bid is placed
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
@@ -123,7 +121,6 @@ const Bid = () => {
                     console.log('Received message for the transactions:', JSON.parse(message.body)); 
                     //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
-                    hello(); // Executed only once
                 });
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
@@ -131,31 +128,32 @@ const Bid = () => {
                     setTimer((prev)=> Number(time) + 1);
                 });
                 stompClient.subscribe('/topic/status',message=>{
-                    console.log("Received message for the status:" ,JSON.parse(message.body));
-                    //setItemStatus(message.toString());
+                    console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
+                    setItemStatus(JSON.parse(message.body)["status"]);
                 });
-                //Timer countdown
+                //Timer countdown happens if a bid is placed for the first time
                 const countDown = setInterval(() => {
+                    let secondsLeft = item?.available_duration; // logging the time for debugging 
                     console.log(`Time left: ${secondsLeft} seconds`);
-                    secondsLeft--;
+                    secondsLeft!--;
                     stompClient.publish({
                         destination:"/app/timerHello",
                         body: JSON.stringify( {
                             "time":secondsLeft,  
                         }),
                     });
-                    if (secondsLeft < 0) {
+                    console.log(timer)
+                    if (secondsLeft! < 0) {
                         clearInterval(countDown); 
                         setIsTimerUp(true);
                         console.log("OI")
-                        //TODO sends the "SOLD" message to the backend also broadcasts the message to others
                         stompClient.publish({
                             destination:"/app/itemStatus",
                             body: JSON.stringify({
                                 "status":"SOLD",
                             })
                         });
-                        return ;
+                        return;
                     }
                 }, 1000);
             },
@@ -178,11 +176,7 @@ const Bid = () => {
         };
        
     },[]);
-    function TestComponent(){
-        return(
-            <h1>Hello from a test component {item?.name} </h1>
-        )
-    }
+   
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -190,14 +184,7 @@ const Bid = () => {
         if (item && new_bid > item.current_price) {
             //This creates / updates a new object with the same properties as item
             setItem({ ...item, current_price: new_bid });
-
-            const formData = new FormData();
-            formData.append("name" ,item.name);
-            formData.append("description" ,item.description);
-            formData.append("starting_price" ,item.starting_price.toString());
-            formData.append("current_price" ,new_bid.toString()); //update the price
             try{
-                
                 // Sending to Java backend websocket
                 if(stompClientRef.current && stompClientRef.current.connected){ // previously if(stompClient) 
                     console.log("Sending...")
@@ -217,25 +204,7 @@ const Bid = () => {
                 alert("Problem with the websocket sending")
                 console.error(e)
             } 
-            // The following is a python segment to simply update the price of an item
-            // TODO, Update the price of an item only after the auction timer is up
-            // TODO until then, just display the most recent bid price on the price section 
-            // TODO could import it from a different file to practice decomposition  
-            /*try{
-
-                await axios.post(`http://127.0.0.1:8000/auction/bid/${id}/`,formData,{
-                    headers:{
-                        "Content-Type":"multipart/form-data",
-                        "Authorization": `Bearer ${localStorage.getItem(ACCESS_TOKEN) || ''}`
-                    },
-                    
-                }).then( res => {
-                    console.log("Success",res);
-                });
-            }catch{
-                alert("Could not bid")
-                return;
-            }*/
+           
         }else{
             alert("Bid must be higher than the current price")
         }
@@ -249,10 +218,9 @@ const Bid = () => {
     return (
         <>
             <h1>Item: {item?.name} </h1> 
-            <TestComponent/>
-             {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
+            {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
+          
             {isTimerUp && <Typography variant="body1" color="error">The item is no longer available </Typography>}
-
             {!isTimerUp && (
                 <Typography variant="body1" color="textSecondary">
                     <TimerIcon/> Time left: {timer}s
@@ -260,9 +228,6 @@ const Bid = () => {
             )}         
   
             <Box display="flex" gap={2}>
-                {/* // ! The web socket not handling the JSX elements synchronization yet */}
-                {/* // TODO Consider it by sending only the string "SOLD" to the java backend and update the useState
-                // TODO just like with timer (Save the status into the db) */}
                 <Grid sx={{ backgroundColor: 'black.200', p: 2 }}>
                     
                     {item ? (
@@ -282,7 +247,7 @@ const Bid = () => {
                         </div>
                         ): 
                         ( <p>Loading...</p>) 
-                    }{/*Want a Kind of switch statement to display time up message apart from Loading or use nested if statements */}
+                    }
                     {item && !isTimerUp ? (
                         <form onSubmit={handleBidSubmit}>
                             <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
@@ -301,7 +266,7 @@ const Bid = () => {
                                 opacity: 0.9,
                             }}
                         >
-                        SOLD 
+                        {itemStatus}
                         </Typography>
                     )}
                 </Grid>

@@ -1,0 +1,31 @@
+import React, { useEffect, useState, useRef} from 'react';
+// The following is a python segment to simply update the price of an item
+// TODO, Update the price of an item only after the auction timer is up
+// TODO until then, just display the most recent bid price on the price section 
+// TODO could import it from a different file to practice decomposition
+// TODO  add available_duration 
+// TODO Finally call this inside Bid.tsx
+const UpdFinalPrice = () =>{
+
+    //const formData = new FormData();
+    //formData.append("name" ,item.name);
+    //formData.append("description" ,item.description);
+    //formData.append("starting_price" ,item.starting_price.toString());
+    //formData.append("current_price" ,new_bid.toString()); //update the price  
+            /*try{
+
+                await axios.post(`http://127.0.0.1:8000/auction/bid/${id}/`,formData,{
+                    headers:{
+                        "Content-Type":"multipart/form-data",
+                        "Authorization": `Bearer ${localStorage.getItem(ACCESS_TOKEN) || ''}`
+                    },
+                    
+                }).then( res => {
+                    console.log("Success",res);
+                });
+            }catch{
+                alert("Could not bid")
+                return;
+            }*/
+
+}
