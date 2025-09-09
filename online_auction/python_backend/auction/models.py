@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.contrib.postgres.fields import ArrayField
+from datetime import timedelta
 
 # Create your models here.
 
@@ -10,12 +10,8 @@ class Item(models.Model):
     image = models.ImageField(upload_to='images/')
     starting_price = models.DecimalField(max_digits=10, decimal_places=2)
     current_price = models.DecimalField(max_digits=10, decimal_places=2,null=True,blank=True)
-    is_active = models.BooleanField(default=True)
-    #price_history = ArrayField(
-        #base_field=models.DecimalField(max_digits=10, decimal_places=2),
-        #blank=True,
-        #default=list
-    #)
+    is_active = models.BooleanField(default=True) #true if an item is available, false otherwise
+    available_duration = models.DurationField(default=timedelta(minutes=1))
     #bidder = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     
     #Im using serializer so this is irrelevant 

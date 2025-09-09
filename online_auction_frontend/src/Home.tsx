@@ -11,6 +11,7 @@ interface Item {
     starting_price: number;
     current_price: number; 
     price_history:number;
+    available_duration:number
 };
 
 
@@ -20,9 +21,6 @@ const Home = () => {
     const [item, setItem] = useState<Item[]>([]);
     
     function fetchItems(){
-        //I think we can  use CROW C++ API here
-        //"http://127.0.0.1:8000/auction/items/" -> Django
-        // 'http://localhost:9181/items' -> CROW
         axios.get("http://127.0.0.1:8000/auction/items/")
         .then(response => {
             console.log(response.data);
@@ -52,6 +50,7 @@ const Home = () => {
                         <p>Description: {item.description}</p>
                         <p>Initial Price: {item.starting_price}</p>
                         <p>Price now: {item.current_price}</p>
+                        <p>Available for: {item.available_duration} </p>
                         <Link to = {`/item/${item.id}`}>
                             <img src={`http://127.0.0.1:8000/${item.image}`} alt={item.name} width={250} />
                         </Link>
