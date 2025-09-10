@@ -131,31 +131,6 @@ const Bid = () => {
                     console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
                     setItemStatus(JSON.parse(message.body)["status"]);
                 });
-                //Timer countdown happens if a bid is placed for the first time
-                const countDown = setInterval(() => {
-                    let secondsLeft = item?.available_duration; // logging the time for debugging 
-                    console.log(`Time left: ${secondsLeft} seconds`);
-                    secondsLeft!--;
-                    stompClient.publish({
-                        destination:"/app/timerHello",
-                        body: JSON.stringify( {
-                            "time":secondsLeft,  
-                        }),
-                    });
-                    console.log(timer)
-                    if (secondsLeft! < 0) {
-                        clearInterval(countDown); 
-                        setIsTimerUp(true);
-                        console.log("OI")
-                        stompClient.publish({
-                            destination:"/app/itemStatus",
-                            body: JSON.stringify({
-                                "status":"SOLD",
-                            })
-                        });
-                        return;
-                    }
-                }, 1000);
             },
             onDisconnect: () => {
                 console.log('Disconnected from WebSocket');
@@ -196,6 +171,35 @@ const Bid = () => {
                             "bidPrice":new_bid //Changed from new_bid_price
                         }),
                     });
+                    //Timer countdown happens if a bid is placed for the first time
+                    let secondsLeft = item?.available_duration;
+                    const countDown = setInterval(() => {
+                        {/* // ! secondsLeft is Nan error  the python format is invalid*/}
+                        console.log(`Time left: ${Number(secondsLeft)} seconds`); 
+                        // TODO change it to if (target time  == current time ), then time up 
+                        // time remaining == target time - current time 
+                        secondsLeft!--;
+                        stompClientRef.current.publish({
+                            destination:"/app/timerHello",
+                            body: JSON.stringify( {
+                                "time":secondsLeft,  
+                            }),
+                        });
+                        console.log(timer)
+                        if (secondsLeft! < 0) {
+                            clearInterval(countDown); 
+                            setIsTimerUp(true);
+                            console.log("Time 0")
+                            stompClientRef.current.publish({
+                                destination:"/app/itemStatus",
+                                body: JSON.stringify({
+                                    "status":"SOLD",
+                                })
+                            });
+                            return;
+                        }
+                    }, 1000);
+                    
                 }else{
                     console.error("Not connected to the websocket");
                 }
