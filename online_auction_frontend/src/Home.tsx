@@ -11,7 +11,9 @@ interface Item {
     starting_price: number;
     current_price: number; 
     price_history:number;
+    created_at:number,
     available_duration:number
+    
 };
 
 
@@ -19,20 +21,48 @@ interface Item {
 const Home = () => {
 
     const [item, setItem] = useState<Item[]>([]);
+    // TODO formattedDate use state here to display it independently
+    const [formattedDate,setFormattedDate] = useState<any>();
     
     function fetchItems(){
         axios.get("http://127.0.0.1:8000/auction/items/")
         .then(response => {
-            console.log(response.data);
+            console.log(response.data)
             setItem(response.data);
         })
         .catch(error => {
            alert("Failed to fetch items");
-        }
-        )
+        })
+        return item
     }
+
+    function fetchItemsWithFormatDate(){
+        
+        item?.map(i => (
+            setFormattedDate(new Date(i.created_at))
+            
+        ))
+
+        const formatted = formattedDate!.toLocaleString("en-GB", {
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+        });
+        // formattedDate useState update here
+        console.log(formatted); 
+        
+
+    }
+
+    
+    
     useEffect(() => {
-        fetchItems();
+        const test = fetchItems();
+        //console.log(test);
+        //fetchItemsWithFormatDate();
     },[]);
 
     return(
@@ -50,6 +80,7 @@ const Home = () => {
                         <p>Description: {item.description}</p>
                         <p>Initial Price: {item.starting_price}</p>
                         <p>Price now: {item.current_price}</p>
+                        <p>Listed at: {item.created_at} </p>
                         <p>Available for: {item.available_duration} </p>
                         <Link to = {`/item/${item.id}`}>
                             <img src={`http://127.0.0.1:8000/${item.image}`} alt={item.name} width={250} />
