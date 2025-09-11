@@ -10,9 +10,8 @@ interface Item {
     image: string;
     starting_price: number;
     current_price: number; 
-    price_history:number;
-    created_at:number,
-    available_duration:number
+    available_duration:number,
+    expires_at:number
     
 };
 
@@ -21,44 +20,34 @@ interface Item {
 const Home = () => {
 
     const [item, setItem] = useState<Item[]>([]);
-    // TODO formattedDate use state here to display it independently
-    const [formattedDate,setFormattedDate] = useState<any>();
     
     function fetchItems(){
         axios.get("http://127.0.0.1:8000/auction/items/")
+        //Format the date and update the state array 
+        // ...item, means that it copies all the property into a new object 
+        // and we override expires_at with a formatted version
+
         .then(response => {
-            console.log(response.data)
-            setItem(response.data);
+            const formattedItems = response.data.map((item: any) => ({
+            ...item,
+                expires_at: new Date(item.expires_at).toLocaleString("en-GB", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                })
+            }));
+
+            setItem(formattedItems);
         })
         .catch(error => {
            alert("Failed to fetch items");
         })
-        return item
+        
     }
 
-    function fetchItemsWithFormatDate(){
-        
-        item?.map(i => (
-            setFormattedDate(new Date(i.created_at))
-            
-        ))
-
-        const formatted = formattedDate!.toLocaleString("en-GB", {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-        });
-        // formattedDate useState update here
-        console.log(formatted); 
-        
-
-    }
-
-    
-    
     useEffect(() => {
         const test = fetchItems();
         //console.log(test);
@@ -80,8 +69,7 @@ const Home = () => {
                         <p>Description: {item.description}</p>
                         <p>Initial Price: {item.starting_price}</p>
                         <p>Price now: {item.current_price}</p>
-                        <p>Listed at: {item.created_at} </p>
-                        <p>Available for: {item.available_duration} </p>
+                        <p>Expires at: {item.expires_at} </p>
                         <Link to = {`/item/${item.id}`}>
                             <img src={`http://127.0.0.1:8000/${item.image}`} alt={item.name} width={250} />
                         </Link>

@@ -38,7 +38,8 @@ interface Item  {
     starting_price:number,
     current_price:number,
     is_active:Boolean,
-    available_duration:number
+    available_duration:number,
+    expires_at:number
 
 }
 
@@ -51,7 +52,8 @@ const defaultItem: Item = {
     starting_price:0,
     current_price:0,
     is_active:false,
-    available_duration:0
+    available_duration:0,
+    expires_at:0
 }
 
 const Bid = () => {
@@ -70,8 +72,18 @@ const Bid = () => {
     function fetchItemToBid(){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
         .then((res) =>{
-            setItem(res.data)
-            console.log(res.data) 
+        
+            setItem({
+            ...res.data,
+                expires_at: new Date(res.data.expires_at).toLocaleString("en-GB", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                })
+            })
         })
         .catch((err) =>{
             alert("Failed to load the data " + err)
@@ -107,8 +119,7 @@ const Bid = () => {
         fetchItemToBid();//Necessary token function
         getAccessToken(); //Necessary token function
         // ! The timer is synchronized but the JSX elements are not 
-        // TODO Better not to include websocket logic inside an useState if logic
-        // TODO Isolate websocket  
+        
         // TODO start the timer when the first bid is placed
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
@@ -246,7 +257,7 @@ const Bid = () => {
                             </picture>
                             
                             <p>Description: {item.description}</p>
-                            
+                            <p>Expires: {item.expires_at}</p>
                             <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
                         </div>
                         ): 
