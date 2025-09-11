@@ -5,7 +5,11 @@ from django.contrib.auth.models import User
 
 class ItemSerializer(serializers.ModelSerializer):
     formatted_created_at = serializers.SerializerMethodField()
-    expires_at = serializers.SerializerMethodField() 
+    expires_at = serializers.SerializerMethodField()
+    formatted_available_duration_hour = serializers.SerializerMethodField()
+    formatted_available_duration_minutes = serializers.SerializerMethodField()
+    formatted_available_duration_seconds = serializers.SerializerMethodField()  
+
     class Meta:
         model = Item
         fields = '__all__'  
@@ -15,6 +19,15 @@ class ItemSerializer(serializers.ModelSerializer):
     
     def get_expires_at(self, obj):
         return obj.expires_at() 
+    
+    def get_formatted_available_duration_hour(self, obj):
+        return obj.formatted_available_duration_hour()
+    
+    def get_formatted_available_duration_minutes(self, obj):
+        return obj.formatted_available_duration_minutes()
+    
+    def get_formatted_available_duration_seconds(self, obj):
+        return obj.formatted_available_duration_seconds()
         
 class UserSerializer(serializers.ModelSerializer):
         class Meta:

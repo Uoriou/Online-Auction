@@ -13,9 +13,27 @@ class Item(models.Model):
     is_active = models.BooleanField(default=True) #true if an item is available, false otherwise
     created_at = models.DateTimeField(auto_now_add=True) # it is not clearly formatted
     available_duration = models.DurationField(default=timedelta(minutes=1))
-    #bidder = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    #bidder = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True
+    
+    def formatted_available_duration_hour(self):
+        total_seconds = int(self.available_duration.total_seconds())
+        hours, remainder = divmod(total_seconds, 3600)
+       
+        return f"{hours:02}"
+    
+    def formatted_available_duration_minutes(self):
+        total_seconds = int(self.available_duration.total_seconds())
+        hours,remainder = divmod(total_seconds, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        return f"{minutes:02}"
+    
+    def formatted_available_duration_seconds(self):
+        total_seconds = int(self.available_duration.total_seconds())
+        hours,remainder = divmod(total_seconds, 3600)
+        minutes,seconds = divmod(remainder, 60)
+        return f"{seconds:02}"
 
-   
+
     def expires_at(self):
         return self.created_at + self.available_duration
     def formatted_created_at(self):
