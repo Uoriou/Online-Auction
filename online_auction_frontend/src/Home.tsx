@@ -28,6 +28,7 @@ const Home = () => {
         // and we override expires_at with a formatted version
 
         .then(response => {
+            console.log(response.data)
             const formattedItems = response.data.map((item: any) => ({
             ...item,
                 expires_at: new Date(item.expires_at).toLocaleString("en-GB", {
