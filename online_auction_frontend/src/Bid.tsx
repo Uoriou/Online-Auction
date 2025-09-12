@@ -64,6 +64,7 @@ const Bid = () => {
     const stompClientRef = useRef<any>(null); // keep client reference
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
+    const [currentTime, setCurrentTime] = useState(new Date()); // Current time
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
     const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false); 
     //If the timer is up, then set the item status, which also hides the bid button
@@ -118,9 +119,12 @@ const Bid = () => {
         
         fetchItemToBid();//Necessary token function
         getAccessToken(); //Necessary token function
-        // ! The timer is synchronized but the JSX elements are not 
-        
-        // TODO start the timer when the first bid is placed
+        // A built in js function to manage the time 
+        const intervalTime = setInterval(() => {
+            // The following is the callback function that gets executed every 1 sec
+            setCurrentTime(new Date());
+        }, 1000); // Update every  (1 second)
+
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
@@ -159,6 +163,7 @@ const Bid = () => {
             console.log("Cleaning up WebSocket...");
             stompClient.deactivate();
             stompClientRef.current = null;
+            clearInterval(intervalTime);
         };
        
     },[]);
@@ -238,6 +243,7 @@ const Bid = () => {
             {isTimerUp && <Typography variant="body1" color="error">The item is no longer available </Typography>}
             {!isTimerUp && (
                 <Typography variant="body1" color="textSecondary">
+                    <TimerIcon/>  Time now: {currentTime.toLocaleString()}
                     <TimerIcon/> Time left: {timer}s
                 </Typography>
             )}         
