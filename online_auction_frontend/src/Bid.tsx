@@ -1,7 +1,6 @@
 import React, { useEffect, useState, useRef} from 'react';
 import axios from 'axios';
 import { useLocation,useParams } from 'react-router-dom';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
 import Alert from '@mui/material/Alert';
 import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 import SockJS from 'sockjs-client';
@@ -14,6 +13,8 @@ import Grid from '@mui/material/Grid';
 import { styled } from '@mui/material/styles';
 import TimerIcon from '@mui/icons-material/Timer';
 import { Typography } from "@mui/material";
+import {getAccessToken} from './Tokens';
+
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -68,12 +69,33 @@ const Bid = () => {
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
     const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false); 
     //If the timer is up, then set the item status, which also hides the bid button
-    const [itemStatus,setItemStatus] = useState<string>(""); 
-
-    function fetchItemToBid(){
+    const [itemStatus,setItemStatus] = useState<"" | "EXPIRED" | "SOLD">("");
+    
+    function fetchItemToBid(cb: Function){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
         .then((res) =>{
-        
+            const expiresAt = new Date(res.data.expires_at).toLocaleString("en-GB", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+                second: "2-digit",
+            })
+            // ! it is not properly handling the logic
+            // ! time format is not consistent
+            let d = new Date();
+            if (new Date(expiresAt) < d){
+                setItemStatus("EXPIRED");
+                setIsTimerUp(true);
+                console.log("Expired")
+            }else{
+                console.log(expiresAt)
+                let d = new Date();
+                console.log(d)
+            }
+            cb(); // Just testing 
+            
             setItem({
             ...res.data,
                 expires_at: new Date(res.data.expires_at).toLocaleString("en-GB", {
@@ -90,41 +112,19 @@ const Bid = () => {
             alert("Failed to load the data " + err)
         })
     }
-
-    const refreshAccessToken = async () => {
-        const refreshToken = localStorage.getItem(REFRESH_TOKEN);
-        if (!refreshToken) {
-            throw new Error("No refresh token available");
-        }
-    
-        const response = await axios.post('http://127.0.0.1:8000/auction/token/refresh/', {
-            refresh: refreshToken,
-        });
-    
-        const newAccessToken = response.data.access;
-        localStorage.setItem('accessToken', newAccessToken);
-        return newAccessToken;
-    };
-    
-    const getAccessToken = async () => {
-        let accessToken = localStorage.getItem(ACCESS_TOKEN);
-        if (!accessToken) {
-            accessToken = await refreshAccessToken();
-        }
-
-        return accessToken;
-    } 
     
     useEffect(() => {
-        
-        fetchItemToBid();//Necessary token function
-        getAccessToken(); //Necessary token function
         // A built in js function to manage the time 
         const intervalTime = setInterval(() => {
-            // The following is the callback function that gets executed every 1 sec
+            // callback (arrow function or normal function) = the operation you want to be called later inside setInterval
             setCurrentTime(new Date());
         }, 1000); // Update every  (1 second)
-
+        fetchItemToBid(()=>{
+            console.log("callback")
+        });
+        getAccessToken(); //Necessary token function
+        
+        // Websocket 
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
@@ -187,13 +187,19 @@ const Bid = () => {
                             "bidPrice":new_bid //Changed from new_bid_price
                         }),
                     });
-                    //Timer countdown happens if a bid is placed for the first time
+                    // TODO Timer countdown happens when the time remain is within the set duration
+                    // Todo and if somebody placed a bid
+                
                     let secondsLeft = item?.available_duration;
                     const countDown = setInterval(() => {
-                        {/* // ! secondsLeft is Nan error  the python format is invalid*/}
-                        console.log(`Time left: ${Number(secondsLeft)} seconds`); 
-                        // TODO change it to if (target time  == current time ), then time up 
-                        // time remaining == target time - current time 
+    
+                        const expiresAt = new Date(item.expires_at);
+                         
+                        if (new Date() < expiresAt) {
+                            console.log("It is not expired yet ! ")
+                        }else{
+                            console.log("Expired")
+                        }
                         secondsLeft!--;
                         stompClientRef.current.publish({
                             destination:"/app/timerHello",
@@ -201,10 +207,12 @@ const Bid = () => {
                                 "time":secondsLeft,  
                             }),
                         });
+                        // ! Double check here 
+                       // If the timer is up and somebody placed a bid, then the following happens
                         console.log(timer)
                         if (secondsLeft! < 0) {
                             clearInterval(countDown); 
-                            setIsTimerUp(true);
+                            //setIsTimerUp(true);
                             console.log("Time 0")
                             stompClientRef.current.publish({
                                 destination:"/app/itemStatus",
@@ -240,7 +248,6 @@ const Bid = () => {
             <h1>Item: {item?.name} </h1> 
             {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
           
-            {isTimerUp && <Typography variant="body1" color="error">The item is no longer available </Typography>}
             {!isTimerUp && (
                 <Typography variant="body1" color="textSecondary">
                     <TimerIcon/>  Time now: {currentTime.toLocaleString()}
@@ -290,6 +297,7 @@ const Bid = () => {
                         {itemStatus}
                         </Typography>
                     )}
+                   
                 </Grid>
                
                 {/*Web socket real time bid inside a box -- >  */}

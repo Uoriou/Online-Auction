@@ -27,7 +27,7 @@ const Home = () => {
         // ...item, means that it copies all the property into a new object 
         // and we override expires_at with a formatted version
 
-        .then(response => {
+        .then((response) => {
             console.log(response.data)
             const formattedItems = response.data.map((item: any) => ({
             ...item,
