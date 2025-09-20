@@ -22,7 +22,7 @@ interface Item  {
 }
 
 const UpdFinalPrice = (item:Item) =>{
-
+    // Change all to a simple Json
     //const formData = new FormData();
     //formData.append("name" ,item.name);
     //formData.append("description" ,item.description);

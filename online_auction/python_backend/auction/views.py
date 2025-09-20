@@ -62,6 +62,24 @@ def bid_item(request, id):
     else:
         print("Error:", serialized_item.errors)
         return JsonResponse(serialized_item.errors, safe=False)
+    
+#Updating an item status
+@api_view(['POST']) 
+@permission_classes([IsAuthenticated])
+def update_item_status(request,id):
+    item = Item.objects.get(id=id)
+    data = request.data
+    print("Received data:", data) 
+    serialized_item = ItemSerializer(instance=item, data=data, partial=True)
+    #update only the current price
+    if serialized_item.is_valid():
+        serialized_item.save()
+        return JsonResponse(serialized_item.data, safe=False)
+    else:
+        print("Error:", serialized_item.errors)
+        return JsonResponse(serialized_item.errors, safe=False)
+    
+
 
 # TODO: Add Delete
     
