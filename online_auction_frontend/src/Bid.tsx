@@ -14,7 +14,7 @@ import { styled } from '@mui/material/styles';
 import TimerIcon from '@mui/icons-material/Timer';
 import { Typography } from "@mui/material";
 import {getAccessToken} from './Tokens';
-
+import {updateAvailability} from './UpdateItemStatus';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -74,38 +74,22 @@ const Bid = () => {
     function fetchItemToBid(cb: Function){
         axios.get(`http://127.0.0.1:8000/auction/item/${id}/`)
         .then((res) =>{
-            const expiresAt = new Date(res.data.expires_at).toLocaleString("en-GB", {
-                year: "numeric",
-                month: "2-digit",
-                day: "2-digit",
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit",
-            })
-            // ! it is not properly handling the logic
-            // ! time format is not consistent
-            let d = new Date();
-            if (new Date(expiresAt) < d){
+            const expiresAt = new Date(res.data.expires_at); 
+            let now = new Date();
+            //Checks if the item is expired in the first place before bidding
+            //But it checks later the expiry date 
+            if(expiresAt < now){
                 setItemStatus("EXPIRED");
-                setIsTimerUp(true);
-                console.log("Expired")
-            }else{
-                console.log(expiresAt)
-                let d = new Date();
-                console.log(d)
+                //setIsTimerUp(true); // ! Disabled for now 
+               
+            }else {
+                console.log("Expires at:", expiresAt);
+                console.log("Now:", now);
             }
             cb(); // Just testing 
-            
             setItem({
-            ...res.data,
-                expires_at: new Date(res.data.expires_at).toLocaleString("en-GB", {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                })
+                ...res.data,
+                expires_at: res.data.expires_at 
             })
         })
         .catch((err) =>{
@@ -124,12 +108,12 @@ const Bid = () => {
         });
         getAccessToken(); //Necessary token function
         
-        // Websocket 
+        // Websocket logic 
         const stompClient = new Client({
             brokerURL: 'ws://localhost:8080/websocket',
             webSocketFactory: () => new SockJS('http://localhost:8080/websocket'),
             debug: (str) => {
-                console.log(str); // It is printing out some debug messages 
+                console.log(str); // It is printing out some status messages 
             }, 
             onConnect: () => {
                 stompClient.subscribe('/topic/greetings', message => {
@@ -140,12 +124,14 @@ const Bid = () => {
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
                     console.log('Received message for the timer:', Number(time));  
-                    setTimer((prev)=> Number(time) + 1);
+                    setTimer(Number(time));
                 });
                 stompClient.subscribe('/topic/status',message=>{
                     console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
-                    setItemStatus(JSON.parse(message.body)["status"]);
+                    setItemStatus(JSON.parse(message.body)["status"]); // if sold
+                    //updateAvailability(JSON.parse(message.body)["status"]) // !
                 });
+                winner(bidHistory[0]); // ! Could be undefined 
             },
             onDisconnect: () => {
                 console.log('Disconnected from WebSocket');
@@ -155,31 +141,47 @@ const Bid = () => {
                 console.error('Additional details:', frame.body);
             },
         });
+        
 
         stompClientRef.current = stompClient;
         stompClient.activate(); 
-        // !  I just added this, could be erroneous
         return () => {
             console.log("Cleaning up WebSocket...");
             stompClient.deactivate();
             stompClientRef.current = null;
             clearInterval(intervalTime);
         };
+        
+       
        
     },[]);
+    // Todo also update the item status in django
+    function winner(bidHistory:string){
+
+        if(bidHistory){ 
+            stompClientRef.current.publish({
+                destination:"/app/itemStatus",
+                body: JSON.stringify({
+                    "status":"SOLD",
+                })
+            });
+            console.log("The Winner has been determined")
+        }else{
+            console.log("No winner has been determined")
+        }
+    }
+
+    
    
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
-        const new_bid = Number(bidHistory[0]);// lst index ? 
+        const new_bid = Number(bidHistory[0]);
         if (item && new_bid > item.current_price) {
-            //This creates / updates a new object with the same properties as item
-            setItem({ ...item, current_price: new_bid });
+            setItem({ ...item, current_price: new_bid });//Copy the properties while updating the price only 
             try{
                 // Sending to Java backend websocket
                 if(stompClientRef.current && stompClientRef.current.connected){ // previously if(stompClient) 
-                    console.log("Sending...")
-                    //previously stompClient.publish()
                     stompClientRef.current.publish({
                         destination: '/app/hello', 
                         body: JSON.stringify( {
@@ -187,41 +189,26 @@ const Bid = () => {
                             "bidPrice":new_bid //Changed from new_bid_price
                         }),
                     });
-                    // TODO Timer countdown happens when the time remain is within the set duration
-                    // Todo and if somebody placed a bid
-                
-                    let secondsLeft = item?.available_duration;
                     const countDown = setInterval(() => {
-    
-                        const expiresAt = new Date(item.expires_at);
-                         
-                        if (new Date() < expiresAt) {
-                            console.log("It is not expired yet ! ")
-                        }else{
-                            console.log("Expired")
-                        }
-                        secondsLeft!--;
-                        stompClientRef.current.publish({
-                            destination:"/app/timerHello",
-                            body: JSON.stringify( {
-                                "time":secondsLeft,  
-                            }),
-                        });
-                        // ! Double check here 
-                       // If the timer is up and somebody placed a bid, then the following happens
-                        console.log(timer)
-                        if (secondsLeft! < 0) {
-                            clearInterval(countDown); 
-                            //setIsTimerUp(true);
-                            console.log("Time 0")
+                        if(!isTimerUp){
+                            let remainingSeconds = item
+                                ? Math.max(0, Math.floor((new Date(item.expires_at).getTime() - currentTime.getTime()) / 1000))
+                                : 0;
                             stompClientRef.current.publish({
-                                destination:"/app/itemStatus",
-                                body: JSON.stringify({
-                                    "status":"SOLD",
-                                })
-                            });
-                            return;
+                                destination:"/app/timerHello",
+                                body: JSON.stringify( {
+                                    "time":remainingSeconds,  
+                                }),
+                               
+                            }); 
+                          winner(bidHistory[0]); // ! 
+                        }else{
+                            // ! The place is dodgy
+                            //winner(bidHistory[0]);
                         }
+                       
+                        return;
+                        //clearInterval(countDown)
                     }, 1000);
                     
                 }else{
@@ -270,7 +257,14 @@ const Bid = () => {
                             </picture>
                             
                             <p>Description: {item.description}</p>
-                            <p>Expires: {item.expires_at}</p>
+                            <p>Expires: {new Date(item.expires_at).toLocaleString("en-GB", {
+                                year: "numeric",
+                                month: "2-digit",
+                                day: "2-digit",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                                second: "2-digit",
+                            })}</p>
                             <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
                         </div>
                         ): 
