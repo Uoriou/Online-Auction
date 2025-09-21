@@ -63,6 +63,7 @@ const Bid = () => {
     const [item, setItem] = useState<Item | null>();
     const [bidHistory,setBidHistory] = useState<string[]>([]);//Change the data type
     const stompClientRef = useRef<any>(null); // keep client reference
+    const countDownRef = useRef<any>(null);
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
     const [open,setOpen] = React.useState(false);
     const [currentTime, setCurrentTime] = useState(new Date()); // Current time
@@ -95,6 +96,23 @@ const Bid = () => {
         .catch((err) =>{
             alert("Failed to load the data " + err)
         })
+    }
+
+    // Todo also update the item status in django
+    function winner(bidHistory:string){
+
+        if(bidHistory){ 
+            stompClientRef.current.publish({
+                destination:"/app/itemStatus",
+                body: JSON.stringify({
+                    "status":"SOLD",
+                })
+            });
+            console.log("The Winner has been determined")
+        }else{
+            console.log("No winner has been determined")
+        }
+        return 0;
     }
     
     useEffect(() => {
@@ -131,7 +149,6 @@ const Bid = () => {
                     setItemStatus(JSON.parse(message.body)["status"]); // if sold
                     //updateAvailability(JSON.parse(message.body)["status"]) // !
                 });
-                winner(bidHistory[0]); // ! Could be undefined 
             },
             onDisconnect: () => {
                 console.log('Disconnected from WebSocket');
@@ -142,7 +159,6 @@ const Bid = () => {
             },
         });
         
-
         stompClientRef.current = stompClient;
         stompClient.activate(); 
         return () => {
@@ -152,41 +168,34 @@ const Bid = () => {
             clearInterval(intervalTime);
         };
         
-       
-       
     },[]);
-    // Todo also update the item status in django
-    function winner(bidHistory:string){
-
-        if(bidHistory){ 
-            stompClientRef.current.publish({
-                destination:"/app/itemStatus",
-                body: JSON.stringify({
-                    "status":"SOLD",
-                })
-            });
-            console.log("The Winner has been determined")
-        }else{
-            console.log("No winner has been determined")
-        }
-    }
-
     
-   
+    // Use effect that watches for timer changes to the timer and the status
+    useEffect(() => {
+        if ((timer === 0 || itemStatus === "EXPIRED" || itemStatus === "SOLD") && bidsRt.length > 0) {
+            winner(bidsRt[bidsRt.length - 1].bidPrice.toString()); 
+            setIsTimerUp(true);
+        }
+        if(isTimerUp && countDownRef.current){
+            clearInterval(countDownRef.current);
+            countDownRef.current = null;
+        }
+    }, [timer, itemStatus, bidsRt,isTimerUp]);
+
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
         const new_bid = Number(bidHistory[0]);
         if (item && new_bid > item.current_price) {
-            setItem({ ...item, current_price: new_bid });//Copy the properties while updating the price only 
+            setItem({ ...item, current_price: new_bid });//Updating the price only while coping the properties 
             try{
                 // Sending to Java backend websocket
                 if(stompClientRef.current && stompClientRef.current.connected){ // previously if(stompClient) 
                     stompClientRef.current.publish({
                         destination: '/app/hello', 
                         body: JSON.stringify( {
-                            "itemId":item.id, // Changed from item_id
-                            "bidPrice":new_bid //Changed from new_bid_price
+                            "itemId":item.id,
+                            "bidPrice":new_bid 
                         }),
                     });
                     const countDown = setInterval(() => {
@@ -201,15 +210,9 @@ const Bid = () => {
                                 }),
                                
                             }); 
-                          winner(bidHistory[0]); // ! 
-                        }else{
-                            // ! The place is dodgy
-                            //winner(bidHistory[0]);
                         }
-                       
-                        return;
-                        //clearInterval(countDown)
                     }, 1000);
+                    countDownRef.current = countDown;
                     
                 }else{
                     console.error("Not connected to the websocket");
@@ -269,9 +272,9 @@ const Bid = () => {
                         </div>
                         ): 
                         ( <p>Loading...</p>) 
-                    }
+                    }{/*<form onSubmit={handleBidSubmit}>*/}
                     {item && !isTimerUp ? (
-                        <form onSubmit={handleBidSubmit}>
+                        <form onSubmit={(e) => handleBidSubmit(e)}>{/*Is this ok ? -> No, both function executing at the same time */}
                             <input type = "text" onChange={(e) => setBidHistory([e.target.value])}></input>
                             <Button type="submit"> 
                                 Place bid €
