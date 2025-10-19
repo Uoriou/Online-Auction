@@ -5,7 +5,7 @@ import { useParams } from 'react-router-dom';
 /*Update the item status (Available or Expired) */
 
 export async function updateAvailability(status: string){
-    // if(status === "SOLD"){
+    
     const { id } = useParams<{ id: string }>();
         const dataToSend = {
             "is_active":false,
@@ -22,6 +22,6 @@ export async function updateAvailability(status: string){
         }).catch(error => {
             alert("Failed to update the status");
         }) 
-    //}
+   
     
 }

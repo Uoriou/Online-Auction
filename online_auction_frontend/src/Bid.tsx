@@ -79,9 +79,12 @@ const Bid = () => {
             let now = new Date();
             //Checks if the item is expired in the first place before bidding
             //But it checks later the expiry date 
+
+            // TODO isnt it better to get the message that says "Expired" from django 
+            // TODO so at some point in the code, when the time is up, or update the status
             if(expiresAt < now){
                 setItemStatus("EXPIRED");
-                //setIsTimerUp(true); // ! Disabled for now 
+                setIsTimerUp(true); // ! Enabled for now 
                
             }else {
                 console.log("Expires at:", expiresAt);
@@ -114,6 +117,7 @@ const Bid = () => {
         }
         return 0;
     }
+
     
     useEffect(() => {
         // A built in js function to manage the time 
@@ -142,12 +146,18 @@ const Bid = () => {
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
                     console.log('Received message for the timer:', Number(time));  
-                    setTimer(Number(time));
+                    //setTimer(Number(time));
                 });
                 stompClient.subscribe('/topic/status',message=>{
                     console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
-                    setItemStatus(JSON.parse(message.body)["status"]); // if sold
-                    //updateAvailability(JSON.parse(message.body)["status"]) // !
+                    const status:string = JSON.parse(message.body)["status"];
+                    setItemStatus(JSON.parse(message.body)["status"]); 
+                    // ! but this should trigger if the time is up 
+                    if(status == "SOLD"){
+                        // ! This throws an error
+                        //updateAvailability(status)
+                        console.log("SOLD")
+                    }
                 });
             },
             onDisconnect: () => {
@@ -182,6 +192,15 @@ const Bid = () => {
         }
     }, [timer, itemStatus, bidsRt,isTimerUp]);
 
+    // TODO if the timer is up, websocket status is triggered
+    useEffect(()=>{
+
+        if(timer == 0){
+            console.log("Time is up")
+        }
+
+    },[])
+
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -198,22 +217,14 @@ const Bid = () => {
                             "bidPrice":new_bid 
                         }),
                     });
-                    const countDown = setInterval(() => {
-                        if(!isTimerUp){
-                            let remainingSeconds = item
-                                ? Math.max(0, Math.floor((new Date(item.expires_at).getTime() - currentTime.getTime()) / 1000))
-                                : 0;
-                            stompClientRef.current.publish({
-                                destination:"/app/timerHello",
-                                body: JSON.stringify( {
-                                    "time":remainingSeconds,  
-                                }),
-                               
-                            }); 
-                        }
-                    }, 1000);
-                    countDownRef.current = countDown;
-                    
+                   // ! Come back here later
+                    stompClientRef.current.publish({
+                        destination: '/app/itemStatus', 
+                        body: JSON.stringify( {
+                           
+                            "status":"SOLD"
+                        }),
+                    });
                 }else{
                     console.error("Not connected to the websocket");
                 }
@@ -241,7 +252,6 @@ const Bid = () => {
             {!isTimerUp && (
                 <Typography variant="body1" color="textSecondary">
                     <TimerIcon/>  Time now: {currentTime.toLocaleString()}
-                    <TimerIcon/> Time left: {timer}s
                 </Typography>
             )}         
   
@@ -260,7 +270,7 @@ const Bid = () => {
                             </picture>
                             
                             <p>Description: {item.description}</p>
-                            <p>Expires: {new Date(item.expires_at).toLocaleString("en-GB", {
+                            <p style={{ color: "red", fontWeight: "bold" }}>Expires on: {new Date(item.expires_at).toLocaleString("en-GB", {
                                 year: "numeric",
                                 month: "2-digit",
                                 day: "2-digit",
