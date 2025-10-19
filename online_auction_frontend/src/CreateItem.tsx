@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
+import { ACCESS_TOKEN } from './Constants';
 import axios from 'axios';
-import logo from 'logo.svg';
 
 interface Item  {
 
@@ -10,7 +9,8 @@ interface Item  {
     image:string,
     startingPrice:number,
     currentPrice:number,
-    is_active:Boolean
+    is_active:Boolean,
+    expires_at:Date | null,
 
 }
 
@@ -22,6 +22,7 @@ const defaultItem: Item = {
     startingPrice:0,
     currentPrice:0,
     is_active:false,
+    expires_at:new Date()
 }
 
 const CreateItem = () => {
@@ -35,8 +36,9 @@ const CreateItem = () => {
     const [description,setDescription] = useState("");
     const [startingPrice,setStartingPrice] = useState(0);
     const [currentPrice,setCurrentPrice] = useState(0);
+    const [expire,setExpire] = useState<string>('');
 
-    // ! In models.py a new filed available duration has been created so an erroneous behaviour is expected here 
+   
     async function handleOnSubmit(e: React.SyntheticEvent){
         e.preventDefault();
         if(!file) return;//In case theres something wrong with on change
@@ -47,7 +49,7 @@ const CreateItem = () => {
         formData.append('image',file);
         formData.append("starting_price" ,startingPrice.toString());
         formData.append("current_price" ,currentPrice.toString());
-
+        formData.append("expires_at", expire || '');
         
         try{
             await axios.post("http://127.0.0.1:8000/auction/add/",formData,{
@@ -63,6 +65,8 @@ const CreateItem = () => {
                 setStartingPrice(0);
                 setCurrentPrice(0);
                 setFile(undefined);
+                setExpire("");
+
             });
         }catch{
             alert("Could not add an item")
@@ -110,14 +114,25 @@ const CreateItem = () => {
             </div>
 
             <div className="form-group form-group-md">
-                <label className="col-sm-2 control-label" htmlFor="initial">Initial Price €</label>
-                <div className="col-sm-10">
+                <label htmlFor="initial">Initial Price €</label>
+               
                 <input className="form-control" 
                     type="number" id="startingPrice" 
                     name = "startingPrice" placeholder="Initial Price" 
                     value={startingPrice} onChange={(e) => 
                     {setStartingPrice(Number(e.target.value));setCurrentPrice(Number(e.target.value))}}/>
-                </div>
+               
+            </div>
+
+           <div className="form-group">
+                <label htmlFor="expire">Set the expiry date</label>
+                <input 
+                    type="date" 
+                    className="form-control" 
+                    name="expires_at" 
+                    min={new Date().toISOString().split("T")[0]} //remove the time so the calendar picker recognises it
+                    onChange={(e) => setExpire(e.target.value)} 
+                />
             </div>
            
 
