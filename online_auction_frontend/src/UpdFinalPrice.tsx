@@ -21,7 +21,8 @@ interface Item  {
 
 }
 
-const UpdFinalPrice = (item:Item) =>{
+const UpdFinalPrice = (jsonObject:JSON) =>{
+    console.log("Trying to update the price...")
     // Change all to a simple Json
     //const formData = new FormData();
     //formData.append("name" ,item.name);
@@ -45,3 +46,4 @@ const UpdFinalPrice = (item:Item) =>{
             }*/
 
 }
+export default UpdFinalPrice;
