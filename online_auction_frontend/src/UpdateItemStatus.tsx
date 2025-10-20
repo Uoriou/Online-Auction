@@ -4,17 +4,17 @@ import { useParams } from 'react-router-dom';
 
 /*Update the item info (Available or Expired) */
 
-export async function update(status: string){
+export async function update(status: any){
     
-    const { id } = useParams<{ id: string }>();
+    const { id } = useParams<{ id: string }>(); // ! 
     const dataToSend = {
         "is_active":false,
     }
-    const jsonString = JSON.stringify(dataToSend);
+    const jsonData = JSON.stringify(dataToSend);
         
-    await axios.post(`http://127.0.0.1:8000/auction/item_status/${id}/`,jsonString,{
+    await axios.post(`http://127.0.0.1:8000/auction/item_status/${id}/`,jsonData,{
         headers:{
-            "Content-Type":"application/json",
+            //"Content-Type":"application/json",
             "Authorization": `Bearer ${localStorage.getItem(ACCESS_TOKEN) || ''}`
         },             
     }).then( res => {

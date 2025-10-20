@@ -84,14 +84,14 @@ const Bid = () => {
 
             // TODO isnt it better to get the message that says "Expired" from django 
             // TODO so at some point in the code, when the time is up, or update the status
-            if(expiresAt < now){
+            /*if(expiresAt < now){
                 //setItemStatus("EXPIRED");
                 setIsTimerUp(true); // ! Enabled for now 
                
             }else {
                 console.log("Expires on:", expiresAt);
                 console.log("Now:", now);
-            }
+            }*/
             cb(); // Just testing 
             setItem({
                 ...res.data,
@@ -148,11 +148,11 @@ const Bid = () => {
                     setTimer(Number(time));
                 });
                 stompClient.subscribe('/topic/status',message=>{
-                    console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
+                    console.log("Received message for the status:" ,JSON.parse(message.body));
                     const status:string = JSON.parse(message.body)["status"];
                     if(status == "SOLD"){
                         setItemStatus(status); 
-                        update(status); //!  Could be an issue ?
+                        update(JSON.parse(message.body)); //!  Could be an issue ?
                         console.log("SOLD here man")
                     }
                 });

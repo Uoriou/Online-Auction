@@ -1,12 +1,7 @@
-import React, { useEffect, useState, useRef} from 'react';
+import React, { useEffect, useState} from 'react';
 import axios from 'axios';
 import { ACCESS_TOKEN, REFRESH_TOKEN } from './Constants';
-// The following is a python segment to simply update the price of an item
-// TODO, Update the price of an item only after the auction timer is up
-// TODO until then, just display the most recent bid price on the price section 
-// TODO could import it from a different file to practice decomposition
-// TODO  add available_duration 
-// TODO Finally call this inside Bid.tsx
+
 interface Item  {
     
     id:number,
@@ -21,29 +16,34 @@ interface Item  {
 
 }
 
-const UpdFinalPrice = (jsonObject:JSON) =>{
-    console.log("Trying to update the price...")
-    // Change all to a simple Json
-    //const formData = new FormData();
-    //formData.append("name" ,item.name);
-    //formData.append("description" ,item.description);
-    //formData.append("starting_price" ,item.starting_price.toString());
-    //formData.append("current_price" ,new_bid.toString()); //update the price  
-            /*try{
+const UpdFinalPrice = (jsonObject: any) =>{
 
-                await axios.post(`http://127.0.0.1:8000/auction/bid/${id}/`,formData,{
-                    headers:{
-                        "Content-Type":"multipart/form-data",
-                        "Authorization": `Bearer ${localStorage.getItem(ACCESS_TOKEN) || ''}`
-                    },
+    console.log("Trying to update the price...")
+    console.log(jsonObject?.itemId)
+    const id:string = jsonObject?.itemId.toString();
+    const price:string = jsonObject?.bidPrice.toString()
+    console.log("Hey " ,typeof id) // typeof is an operator like % and + 
+
+    const data = {
+        "id":id,
+        "current_price":price
+    } 
+    const jsonData = JSON.stringify(data);
+    try{
+
+        axios.post(`http://127.0.0.1:8000/auction/bid/${id}/`,jsonData,{
+            headers:{
+                "Content-Type":"application/json",
+                "Authorization": `Bearer ${localStorage.getItem(ACCESS_TOKEN) || ''}`
+            },
                     
-                }).then( res => {
-                    console.log("Success",res);
-                });
-            }catch{
-                alert("Could not bid")
-                return;
-            }*/
+        }).then( res => {
+            console.log("Success",res);
+        });
+    }catch{
+        alert("Error updating the price")
+        return;
+    }
 
 }
 export default UpdFinalPrice;
