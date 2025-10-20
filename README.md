@@ -22,6 +22,18 @@ To run Online-Auction, please ensure that your system meets the following requir
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
+$ tree
+.
+├── dir1
+│   ├── file11.ext
+│   └── file12.ext
+├── dir2
+│   ├── file21.ext
+│   ├── file22.ext
+│   └── file23.ext
+├── dir3
+├── file_in_root.ext
+└── README.md
 
 ## Installation Guidline
 This project is deployed on Docker, therefore 
