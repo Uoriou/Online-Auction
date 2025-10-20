@@ -36,9 +36,11 @@ To run Online-Auction, please ensure that your system meets the following requir
 ## Installation Guidline
 This project is deployed on Docker, therefore 
 
-- Please install Docker desktop: https://www.docker.com/products/docker-desktop/
-- Make sure to clone this Online-Auction repository
-
+- Please install Docker desktop: [Docker desktop](https://www.docker.com/products/docker-desktop/)
+- Make sure to clone this Online-Auction repository:
+```bash
+  git clone https://github.com/Uoriou/Online-Auction.git
+```
 ## Run the application using the docker image
 
 Once Docker / Docker desktop is installed, make sure to navigate to where docker-compose.yml file is located to run the project using this command: 
