@@ -14,7 +14,8 @@ import { styled } from '@mui/material/styles';
 import TimerIcon from '@mui/icons-material/Timer';
 import { Typography } from "@mui/material";
 import {getAccessToken} from './Tokens';
-import {updateAvailability} from './UpdateItemStatus';
+import {update} from './UpdateItemStatus';
+import updFinalPrice from './UpdFinalPrice';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -69,6 +70,7 @@ const Bid = () => {
     const [currentTime, setCurrentTime] = useState(new Date()); // Current time
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
     const [isTimerUp,setIsTimerUp] = useState<Boolean | null>(false); 
+    const [remainingTime, setRemainingTime] = useState<string>("");
     //If the timer is up, then set the item status, which also hides the bid button
     const [itemStatus,setItemStatus] = useState<"" | "EXPIRED" | "SOLD">("");
     
@@ -83,11 +85,11 @@ const Bid = () => {
             // TODO isnt it better to get the message that says "Expired" from django 
             // TODO so at some point in the code, when the time is up, or update the status
             if(expiresAt < now){
-                setItemStatus("EXPIRED");
+                //setItemStatus("EXPIRED");
                 setIsTimerUp(true); // ! Enabled for now 
                
             }else {
-                console.log("Expires at:", expiresAt);
+                console.log("Expires on:", expiresAt);
                 console.log("Now:", now);
             }
             cb(); // Just testing 
@@ -112,19 +114,15 @@ const Bid = () => {
                 })
             });
             console.log("The Winner has been determined")
-        }else{
-            console.log("No winner has been determined")
+            return 0;
         }
-        return 0;
+        console.log("No winner has been determined")
+        return -1;
     }
 
     
     useEffect(() => {
-        // A built in js function to manage the time 
-        const intervalTime = setInterval(() => {
-            // callback (arrow function or normal function) = the operation you want to be called later inside setInterval
-            setCurrentTime(new Date());
-        }, 1000); // Update every  (1 second)
+        
         fetchItemToBid(()=>{
             console.log("callback")
         });
@@ -142,21 +140,20 @@ const Bid = () => {
                     console.log('Received message for the transactions:', JSON.parse(message.body)); 
                     //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
+                    updFinalPrice(JSON.parse(message.body));
                 });
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
                     console.log('Received message for the timer:', Number(time));  
-                    //setTimer(Number(time));
+                    setTimer(Number(time));
                 });
                 stompClient.subscribe('/topic/status',message=>{
                     console.log("Received message for the status:" ,JSON.parse(message.body)["status"]);
                     const status:string = JSON.parse(message.body)["status"];
-                    setItemStatus(JSON.parse(message.body)["status"]); 
-                    // ! but this should trigger if the time is up 
                     if(status == "SOLD"){
-                        // ! This throws an error
-                        //updateAvailability(status)
-                        console.log("SOLD")
+                        setItemStatus(status); 
+                        update(status); //!  Could be an issue ?
+                        console.log("SOLD here man")
                     }
                 });
             },
@@ -175,32 +172,53 @@ const Bid = () => {
             console.log("Cleaning up WebSocket...");
             stompClient.deactivate();
             stompClientRef.current = null;
-            clearInterval(intervalTime);
+            //clearInterval(intervalTime);
         };
         
     },[]);
-    
+    // TODO if the timer is up, websocket ItemStatus is triggered
     // Use effect that watches for timer changes to the timer and the status
     useEffect(() => {
-        if ((timer === 0 || itemStatus === "EXPIRED" || itemStatus === "SOLD") && bidsRt.length > 0) {
-            winner(bidsRt[bidsRt.length - 1].bidPrice.toString()); 
-            setIsTimerUp(true);
-        }
+        // A built in js function to manage the time 
+        const intervalTime = setInterval(() => {
+            // callback (arrow function or normal function) = the operation you want to be called later inside setInterval
+            setCurrentTime(new Date());
+            // Calculate remaining time if item exists
+            if (item?.expires_at) {
+                const now = new Date().getTime();
+                const expiryTime = new Date(item.expires_at).getTime();
+                const timeLeft = expiryTime - now;
+                
+                if (timeLeft <= 0) {
+                    setIsTimerUp(true);
+                    // Broadcast the status to other machines if a winner is determined using websocket
+                    if(bidsRt.length == 0){
+                        setItemStatus("EXPIRED");
+                        setRemainingTime("EXPIRED");
+                    }else{
+                        winner(bidsRt[bidsRt.length - 1].bidPrice.toString());
+                    }
+                } else {
+                    const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                    
+                    setRemainingTime(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+                }
+            }
+        }, 1000); // Update every second
+
         if(isTimerUp && countDownRef.current){
             clearInterval(countDownRef.current);
             countDownRef.current = null;
         }
-    }, [timer, itemStatus, bidsRt,isTimerUp]);
-
-    // TODO if the timer is up, websocket status is triggered
-    useEffect(()=>{
-
-        if(timer == 0){
-            console.log("Time is up")
+        return()=>{
+            clearInterval(intervalTime);
         }
+    }, [timer, itemStatus, bidsRt, isTimerUp, item?.expires_at]);
 
-    },[])
-
+    
     async function handleBidSubmit(e:React.SyntheticEvent){
         
         e.preventDefault();
@@ -215,14 +233,6 @@ const Bid = () => {
                         body: JSON.stringify( {
                             "itemId":item.id,
                             "bidPrice":new_bid 
-                        }),
-                    });
-                   // ! Come back here later
-                    stompClientRef.current.publish({
-                        destination: '/app/itemStatus', 
-                        body: JSON.stringify( {
-                           
-                            "status":"SOLD"
                         }),
                     });
                 }else{
@@ -250,9 +260,14 @@ const Bid = () => {
             {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
           
             {!isTimerUp && (
-                <Typography variant="body1" color="textSecondary">
-                    <TimerIcon/>  Time now: {currentTime.toLocaleString()}
-                </Typography>
+                <>
+                    <Typography variant="body1" color="textSecondary">
+                        <TimerIcon/>  Time now: {currentTime.toLocaleString()}
+                    </Typography>
+                    <Typography variant="h6" color="primary" sx={{ mt: 1 }}>
+                         <TimerIcon/>  Time remaining: {remainingTime}
+                    </Typography>
+                </>
             )}         
   
             <Box display="flex" gap={2}>
