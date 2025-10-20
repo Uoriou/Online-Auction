@@ -22,18 +22,14 @@ To run Online-Auction, please ensure that your system meets the following requir
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
+## Project Structure
+
 ```bash 
-  $ tree
-  .
-  ├── dir1
-  │   ├── file11.ext
-  │   └── file12.ext
-  ├── dir2
-  │   ├── file21.ext
-  │   ├── file22.ext
-  │   └── file23.ext
-  ├── dir3
-  ├── file_in_root.ext
+ 
+  ├── online_auction #Java, Python backend
+  ├── online_auction_frontend # React.js
+  ├── dockerignore #Docker ignore file 
+  ├── gitignore #Ignore 
   └── README.md
 ```
   
