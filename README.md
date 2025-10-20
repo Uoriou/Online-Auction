@@ -34,7 +34,8 @@ To run Online-Auction, please ensure that your system meets the following requir
 ```
   
 ## Installation Guidline
-This project is deployed on Docker, therefore 
+> [!NOTE]
+> This project is deployed on Docker, therefore 
 
 - Please install Docker desktop: [Docker desktop](https://www.docker.com/products/docker-desktop/)
 - Make sure to clone this Online-Auction repository:
