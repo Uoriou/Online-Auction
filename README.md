@@ -16,7 +16,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 
 - Python Django REST framework (User management, Authentication and base mvc)
 - JWT (Authentication)
-- Java Spring Boot (Webscoket)
+- Java Spring Boot (Websocket)
 - PostgreSQL server (Persistent data storage)
 - React Typescript (Frontend)
 - Docker (Server deployment)
