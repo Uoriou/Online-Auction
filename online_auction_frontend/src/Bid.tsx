@@ -226,6 +226,7 @@ const Bid = () => {
         if (item && new_bid > item.current_price) {
             setItem({ ...item, current_price: new_bid });//Updating the price only while coping the properties 
             try{
+                
                 // Sending to Java backend websocket
                 if(stompClientRef.current && stompClientRef.current.connected){ // previously if(stompClient) 
                     stompClientRef.current.publish({
