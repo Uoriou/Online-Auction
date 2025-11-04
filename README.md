@@ -1,4 +1,4 @@
-# :robot: Online-Auction
+# :moneybag: Online-Auction
 
 ## Project Overview
 
