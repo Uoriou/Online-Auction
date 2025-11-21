@@ -1,6 +1,6 @@
 # :moneybag: Online-Auction
 
-## Project Overview
+## :books: Project Overview
 
 "eBid", a budding online auction platform, allows users to list items for auction and enable
 real-time bidding. The platform tracks timers and automatically determine the winning bid when the auction ends. 
@@ -12,7 +12,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 - Operating System: Windows, macOS, or Linux
 - Docker / Docker desktop 
 
-## Libraries / Technologies Used:
+## :computer: Libraries / Technologies Used:
 
 - Python Django REST framework (User management, Authentication and base mvc)
 - JWT (Authentication)
@@ -23,7 +23,7 @@ To run Online-Auction, please ensure that your system meets the following requir
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
-## Project Structure
+## :pushpin: Project Structure
 
 ```bash 
  
