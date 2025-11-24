@@ -22,8 +22,6 @@ To run Online-Auction, please ensure that your system meets the following requir
 - Docker (Server deployment)
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
-  [![Python](https://raw.githubusercontent.com/devicons/devicon/master/icons/python/python-original.svg)](https://www.python.org)
-  [![JavaScript](https://raw.githubusercontent.com/devicons/devicon/master/icons/javascript/javascript-original.svg)](https://developer.mozilla.org/docs/Web/JavaScript)
 
 
 ## :pushpin: Project Structure
