@@ -7,15 +7,20 @@ real-time bidding.
 
 ## Libraries / Technologies Used:
 
-- Python Django REST framework (User management, Authentication and base mvc)
-- JWT (Authentication)
-- Java Spring Boot (Websocket)
-- PostgreSQL server (Persistent data storage)
-- React Typescript (Frontend)
-- Docker (Server deployment)
+ ### Frontend
+ 
+   * React Typescript
+   * MUI material
+     
+ ### Backend
+ 
+   * Python Django REST framework (User management, Authentication and base mvc)
+   * JWT (Authentication)
+   * Java Spring Boot (Websocket)
+   * PostgreSQL server (Persistent data storage)
+   * Docker (Server deployment)
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
-
 
 ##  Project Structure
 
@@ -30,7 +35,7 @@ real-time bidding.
 
 ## Getting Started 
 
-  ### Technical Requirements:
+  ### Technical Requirements
     To run Online-Auction, please ensure that your system meets the following requirements:
     
     * Operating System: Windows, macOS, or Linux
