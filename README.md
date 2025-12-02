@@ -37,9 +37,8 @@ real-time bidding.
 
   ### Technical Requirements
   To run Online-Auction, please ensure that your system meets the following requirements:
-    
-    * Operating System: Windows, macOS, or Linux
-    * Docker / Docker desktop
+   * Operating System: Windows, macOS, or Linux
+   * Docker / Docker desktop
 
   ###  Installation Guidline
   > [!NOTE]
