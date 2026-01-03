@@ -81,8 +81,8 @@ real-time bidding.
   ```
 ## Features
 
-* Item listing
-* Bidding
+* CRUD items
+* Bidding for users
 * Winner declaration
 * Storing the items won
 
