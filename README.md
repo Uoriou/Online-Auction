@@ -17,8 +17,14 @@ real-time bidding.
    * Python Django REST framework (User management, Authentication and base mvc)
    * JWT (Authentication)
    * Java Spring Boot (Websocket)
-   * PostgreSQL server (Persistent data storage)
-   * Docker (Server deployment)
+     
+ ### Databases
+ 
+   * PostgreSQL server 
+     
+ ### Server Deployment / DevOps
+ 
+   * Docker 
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
