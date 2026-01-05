@@ -28,6 +28,16 @@ real-time bidding.
 
   [![My Skills](https://skillicons.dev/icons?i=py,django,java,spring,postgres,react,ts,docker&perline=3)](https://skillicons.dev)
 
+
+## System Architecture 
+
+<p align="center">
+  <img src="https://github.com/Uoriou/Online-Auction/blob/main/architecture.jpg?raw=true"
+       alt="Architecture Diagram"
+       width="500"/>
+</p>
+
+
 ##  Project Structure
 
 ```bash 
