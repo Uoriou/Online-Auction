@@ -2,7 +2,7 @@
 
 ##  Project Overview
 
-"eBid", a budding online auction platform, allows users to list items for auction and enable
+"eBid", an online bidding online auction platform, allows users to list items for auction and enable
 real-time bidding. 
 
 ## Libraries / Technologies Used:
@@ -15,8 +15,8 @@ real-time bidding.
  ### Backend
  
    * Python Django REST framework (User management, Authentication and base mvc)
-   * JWT (Authentication)
    * Java Spring Boot (Websocket)
+   * JWT (Authentication)
      
  ### Databases
  
@@ -97,8 +97,9 @@ real-time bidding.
   ```
 ## Features
 
-* CRUD items
-* Bidding for users
-* Winner declaration
+* CRUD items 
+* Role-based access control 
+* Users can bid any items listed on the auction
+* Winner declaration for the highest bid
 * Storing the items won
 
