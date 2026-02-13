@@ -6,3 +6,4 @@ django-extensions==3.2.3
 psycopg[binary]
 gunicorn
 Pillow
+Python-dotenv
