@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import timedelta
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField # For storing a list if you are using Postgres
 
 # Create your models here.
 
@@ -18,7 +19,15 @@ class Item(models.Model):
     is_active = models.BooleanField(default=True) #true if an item is available, false otherwise
     created_at = models.DateTimeField(auto_now_add=True) # it is not clearly formatted
     expires_at = models.DateTimeField(default=default_expiry)
-    #bidder = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True
+
+class BidHistory(models.Model):
+    # want the record of price history of an item
+    history = models.ForeignKey("Item", related_name="history", on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+
+       
 
     """def formatted_available_duration_hour(self):
         total_seconds = int(self.available_duration.total_seconds())

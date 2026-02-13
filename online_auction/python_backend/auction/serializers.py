@@ -1,4 +1,4 @@
-from .models import Item
+from .models import Item,BidHistory
 from rest_framework import serializers
 from django.contrib.auth.models import User
 
@@ -12,6 +12,11 @@ class ItemSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Item
+        fields = '__all__'  
+        
+class BidHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BidHistory
         fields = '__all__'  
 
     """def get_formatted_created_at(self, obj):

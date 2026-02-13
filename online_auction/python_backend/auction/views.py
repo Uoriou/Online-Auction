@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from django.http import JsonResponse
-from .models import Item
-from .serializers import ItemSerializer, UserSerializer
+from .models import Item,BidHistory
+from .serializers import ItemSerializer, UserSerializer,BidHistorySerializer
 from django.contrib.auth.models import User
 from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated,AllowAny
@@ -80,7 +80,18 @@ def update_item_status(request,id):
         return JsonResponse(serialized_item.errors, safe=False)
     
 
-    
+@api_view(['GET']) 
+@permission_classes([IsAuthenticated])  #Not sure if i need it 
+def get_bids_history(request,id):
+    print(request.data)
+    history = BidHistory.objects.all()
+    print(history)
+    print("Hi")
+   
+    bids = BidHistory.objects.filter(history_id=id).order_by("-id")
+    serializer = BidHistorySerializer(bids, many=True)
+    return JsonResponse(serializer.data,safe=False)
+
 
 
 # TODO: Add Delete
