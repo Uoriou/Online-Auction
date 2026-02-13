@@ -6,10 +6,8 @@ services:
     container_name: postgres-db-auction
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_DB: auction
-      POSTGRES_USER: mario
-      POSTGRES_PASSWORD: mariopassword
+    env_file:
+      - .env
 
   frontend:
       build: ./online_auction_frontend
@@ -42,3 +40,5 @@ services:
       - ./online_auction/python_backend:/app
     depends_on:
       - db
+    env_file:
+      - .env

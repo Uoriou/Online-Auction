@@ -115,12 +115,11 @@ WSGI_APPLICATION = 'online_auction.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'auction',
-        'USER': 'mario',
-        'PASSWORD': 'mariopassword',
-        #'HOST': 'localhost', #when testing locally
-        'HOST': 'db', 
-        'PORT': '5432',
+        'NAME': os.getenv('POSTGRES_DB'),
+        'USER': os.getenv('POSTGRES_USER'),
+        'PASSWORD': os.getenv('POSTGRES_PASSWORD'),
+        'HOST': os.getenv('POSTGRES_HOST'), 
+        'PORT': os.getenv('POSTGRES_PORT'), 
     }
 }
 

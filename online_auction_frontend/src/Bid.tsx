@@ -16,6 +16,7 @@ import { Typography } from "@mui/material";
 import {getAccessToken} from './Tokens';
 import {update} from './UpdateItemStatus';
 import updFinalPrice from './UpdFinalPrice';
+import BidHistoryView from './BidHistory';
 
 const Item = styled(Paper)(({ theme }) => ({
     backgroundColor: '#fff',
@@ -58,6 +59,8 @@ const defaultItem: Item = {
     expires_at:0
 }
 
+
+
 const Bid = () => {
 
     const { id } = useParams<{ id: string }>();
@@ -66,6 +69,7 @@ const Bid = () => {
     const stompClientRef = useRef<any>(null); // keep client reference
     const countDownRef = useRef<any>(null);
     const [bidsRt,setBidsRt] = useState<any[]>([]); // Bids to be displayed on the stack 
+    const [priceRealTime,setPriceRealTime] = useState<any>("");
     const [open,setOpen] = React.useState(false);
     const [currentTime, setCurrentTime] = useState(new Date()); // Current time
     const [timer,setTimer] = useState<number>(); // useState to display the time on the screen
@@ -79,19 +83,8 @@ const Bid = () => {
         .then((res) =>{
             const expiresAt = new Date(res.data.expires_at); 
             let now = new Date();
-            //Checks if the item is expired in the first place before bidding
-            //But it checks later the expiry date 
-
             // TODO isnt it better to get the message that says "Expired" from django 
             // TODO so at some point in the code, when the time is up, or update the status
-            /*if(expiresAt < now){
-                //setItemStatus("EXPIRED");
-                setIsTimerUp(true); // ! Enabled for now 
-               
-            }else {
-                console.log("Expires on:", expiresAt);
-                console.log("Now:", now);
-            }*/
             cb(); // Just testing 
             setItem({
                 ...res.data,
@@ -126,6 +119,15 @@ const Bid = () => {
         fetchItemToBid(()=>{
             console.log("callback")
         });
+        // ! This causes an error at the moment 
+        if (id) {
+            BidHistoryView(id)
+            .then(res => {
+                console.log("OK")
+            }).catch(err => {
+                console.error("Error fetching the bid history",err)
+            });
+        }
         getAccessToken(); //Necessary token function
         
         // Websocket logic 
@@ -140,7 +142,9 @@ const Bid = () => {
                     console.log('Received message for the transactions:', JSON.parse(message.body)); 
                     //Then append the message to the useState array
                     setBidsRt((prev) => [...prev, JSON.parse(message.body)]);
+                    setPriceRealTime(JSON.parse(message.body)["bidPrice"]);
                     updFinalPrice(JSON.parse(message.body));
+                    
                 });
                 stompClient.subscribe('/topic/timer',message=>{
                     let time = JSON.parse(message.body)["time"] 
@@ -150,10 +154,11 @@ const Bid = () => {
                 stompClient.subscribe('/topic/status',message=>{
                     console.log("Received message for the status:" ,JSON.parse(message.body));
                     const status:string = JSON.parse(message.body)["status"];
+                    // TODO Expired comes first than SOLD... so fix it 
                     if(status == "SOLD"){
                         setItemStatus(status); 
                         update(JSON.parse(message.body)); //!  Could be an issue ?
-                        console.log("SOLD here man")
+                        console.log("SOLD out man")
                     }
                 });
             },
@@ -176,7 +181,7 @@ const Bid = () => {
         };
         
     },[]);
-    // TODO if the timer is up, websocket ItemStatus is triggered
+    
     // Use effect that watches for timer changes to the timer and the status
     useEffect(() => {
         // A built in js function to manage the time 
@@ -224,7 +229,7 @@ const Bid = () => {
         e.preventDefault();
         const new_bid = Number(bidHistory[0]);
         if (item && new_bid > item.current_price) {
-            setItem({ ...item, current_price: new_bid });//Updating the price only while coping the properties 
+            setItem({ ...item, current_price: new_bid });//Updating the price only while coping the properties  
             try{
                 
                 // Sending to Java backend websocket
@@ -259,7 +264,7 @@ const Bid = () => {
         <>
             <h1>Item: {item?.name} </h1> 
             {/*If the timer is up (isTimerUp) then the item will become unavailable  */}
-          
+
             {!isTimerUp && (
                 <>
                     <Typography variant="body1" color="textSecondary">
@@ -294,7 +299,8 @@ const Bid = () => {
                                 minute: "2-digit",
                                 second: "2-digit",
                             })}</p>
-                            <h2>Price now €  {item.current_price}</h2> {/*if else to check  if there is authentication error */}
+                            <h2>Starting Price € {item.starting_price}</h2> 
+                            <h2>Bid Price € {priceRealTime}</h2>
                         </div>
                         ): 
                         ( <p>Loading...</p>) 
@@ -323,14 +329,17 @@ const Bid = () => {
                    
                 </Grid>
                
-                {/*Web socket real time bid inside a box -- >  */}
+                {/* // TODO Fetch the stored history of bid prices  */}
+                {/* // TODO to achieve the above, we need to introduce a list in the model */}
+                {/* // TODO Addition to that, real time bids gets added */}
                 <Grid sx={{ backgroundColor: 'grey.200', p: 2 }}>
-                    Real Time Bids Transactions
+                    Bids Transactions History
                     <Stack>
                         <Item>
+                            {}
                             {bidsRt.map((bid, index) => (
                                 <li key={index}>
-                                    ✔️ Price: {bid.bidPrice} €
+                                    Price: {bid.bidPrice} €
                                 </li>
                             ))}
                         </Item >
